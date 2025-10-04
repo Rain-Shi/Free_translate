@@ -57,53 +57,25 @@ def main():
         # 高级功能设置
         st.subheader("🔧 高级功能")
         
-        # 术语锁定
-        st.markdown("**术语锁定设置**")
-        use_terminology = st.checkbox("启用术语锁定", value=False)
-        terminology_text = ""
-        if use_terminology:
-            terminology_text = st.text_area(
-                "术语对照表 (JSON格式)",
-                value='{"API": "API", "AI": "人工智能", "ML": "机器学习"}',
-                height=100,
-                help="输入JSON格式的术语对照表，确保专业术语翻译一致"
-            )
-        
-        # 风格模仿
-        st.markdown("**风格模仿设置**")
-        use_style_imitation = st.checkbox("启用风格模仿", value=False)
-        style_examples = ""
-        if use_style_imitation:
-            style_examples = st.text_area(
-                "风格示例 (JSON格式)",
-                value='{"formal": "正式", "technical": "技术性", "academic": "学术性"}',
-                height=100,
-                help="输入风格示例，让AI模仿特定的翻译风格"
-            )
-        
         # 专有名词保护
-        st.markdown("**专有名词保护设置**")
         use_proper_noun_protection = st.checkbox("启用专有名词保护", value=True)
         
         if use_proper_noun_protection:
             custom_proper_nouns = st.text_area(
                 "自定义专有名词 (每行一个)",
-                value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript\nnaiveHobo/InvoiceNet",
+                value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript",
                 height=100,
                 help="输入需要保护的专有名词，每行一个。系统已内置常见技术专有名词。"
             )
             st.info("ℹ️ 使用内置专有名词保护（GitHub、OpenAI、Python等）")
         
         # 性能优化
-        st.markdown("**性能优化设置**")
         use_performance_optimization = st.checkbox("启用性能优化", value=True, help="使用缓存和批量处理提升翻译速度")
         if use_performance_optimization:
             st.info("🚀 性能优化已启用：缓存翻译结果，批量处理短文本")
         
-        # 格式纠错
-        st.markdown("**格式纠错设置**")
-        auto_format_correction = st.checkbox("自动格式纠错", value=True)
-        show_dual_view = st.checkbox("显示双视图编辑器", value=True)
+        # 显示设置
+        show_dual_view = st.checkbox("显示翻译统计", value=True)
     
     # 主界面
     col1, col2 = st.columns([2, 1])
@@ -170,43 +142,14 @@ def main():
         if st.button("🚀 开始智能翻译", type="primary"):
             with st.spinner("正在进行智能文档翻译..."):
                 # 创建输出文件路径
-                output_filename = f"smart_translated_{uploaded_file.name}"
+                output_filename = f"translated_{uploaded_file.name}"
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as output_file:
                     output_path = output_file.name
                 
-                # 性能优化处理
-                if use_performance_optimization:
-                    st.info("🚀 使用性能优化模式...")
-                    from performance_optimizer import PerformanceOptimizer
-                    optimizer = PerformanceOptimizer()
-                    
-                    # 解析文档
-                    parser = StructuralParser()
-                    parsed_result = parser.parse_document(tmp_file_path)
-                    
-                    if parsed_result:
-                        # 优化翻译
-                        content_items = parsed_result['content_layer']
-                        optimized_items = optimizer.optimize_translation_process(
-                            content_items, target_lang_code, translator_system.translator
-                        )
-                        
-                        # 重建文档
-                        reconstructor = SmartReconstructor()
-                        success = reconstructor.reconstruct_document(
-                            tmp_file_path, optimized_items, 
-                            parsed_result['format_layer'], 
-                            parsed_result['layout_layer'], 
-                            output_path
-                        )
-                    else:
-                        st.error("❌ 文档解析失败")
-                        success = False
-                else:
-                    # 执行智能翻译
-                    success = translator_system.process_document(
-                        tmp_file_path, target_lang_code, output_path
-                    )
+                # 执行智能翻译
+                success = translator_system.process_document(
+                    tmp_file_path, target_lang_code, output_path
+                )
                 
                 if success:
                     st.success("🎉 智能翻译完成！")
@@ -226,54 +169,28 @@ def main():
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                     
-                    # 显示智能文档查看器
+                    # 显示翻译完成信息
                     if show_dual_view:
                         st.markdown("---")
-                        st.subheader("📖 智能文档查看器")
+                        st.subheader("📊 翻译完成")
                         
-                        # 初始化文档查看器
-                        from document_viewer import DocumentViewer
-                        viewer = DocumentViewer()
+                        # 显示翻译统计
+                        col1, col2, col3 = st.columns(3)
                         
-                        # 加载文档
-                        if viewer.load_documents(tmp_file_path, output_path):
-                            # 显示文档摘要
-                            viewer.display_document_summary()
-                            
-                            # 显示文档查看器
-                            viewer.display_document_viewer()
-                        else:
-                            st.warning("⚠️ 无法加载文档，回退到传统双视图编辑器")
-                            
-                        # 回退到简化查看器
-                        st.info("🔄 尝试使用简化查看器...")
-                        from simple_paragraph_viewer import SimpleParagraphViewer
-                        simple_viewer = SimpleParagraphViewer()
+                        with col1:
+                            st.metric("翻译状态", "✅ 完成")
                         
-                        if simple_viewer.load_documents(tmp_file_path, output_path):
-                            st.success("✅ 简化查看器成功！")
-                            # 显示文档摘要
-                            simple_viewer.display_document_summary()
-                            # 显示简化查看器
-                            simple_viewer.display_simple_viewer()
-                        else:
-                            st.error("❌ 所有查看器都失败了，请检查文档格式")
-                    
-                    # 格式纠错报告
-                    if auto_format_correction:
-                        st.markdown("---")
-                        st.subheader("🔍 格式纠错报告")
+                        with col2:
+                            st.metric("目标语言", target_lang)
                         
-                        corrector = FormatCorrector()
-                        issues = corrector.detect_format_issues(output_path)
+                        with col3:
+                            st.metric("文件大小", f"{len(file_data)} bytes")
                         
-                        if issues:
-                            st.warning(f"发现 {len(issues)} 个格式问题:")
-                            for i, issue in enumerate(issues, 1):
-                                st.write(f"{i}. **{issue['type']}**: {issue['description']}")
-                                st.write(f"   建议: {issue['suggestion']}")
-                        else:
-                            st.success("✅ 未发现格式问题，文档格式完美！")
+                        # 显示成功信息
+                        st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
+                        
+                        # 显示使用提示
+                        st.info("💡 提示：翻译后的文档已保持原有格式，可以直接使用。")
                     
                     # 清理临时文件
                     try:
@@ -287,57 +204,30 @@ def main():
     
     # 系统说明
     st.markdown("---")
-    st.subheader("🤖 系统特性")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        **🔍 结构分层解析**
-        - 内容层：纯文本提取
-        - 格式层：样式信息保持
-        - 布局层：结构信息维护
-        """)
-    
-    with col2:
-        st.markdown("""
-        **🤖 语义增强翻译**
-        - 上下文记忆
-        - 术语锁定
-        - 风格模仿
-        """)
-    
-    with col3:
-        st.markdown("""
-        **🔧 格式智能重建**
-        - 锚点映射
-        - 智能行宽调整
-        - 自动格式纠错
-        """)
-    
-    # 使用说明
-    st.markdown("---")
     st.subheader("📖 使用说明")
     
     st.markdown("""
-    ### 🚀 创新特性
+    ### 🚀 功能特性
     
-    1. **结构分层解析**: 将Word文档分解为内容层、格式层、布局层，确保翻译时格式不丢失
+    1. **智能翻译**: 使用OpenAI GPT模型进行高质量翻译
+    2. **格式保持**: 保持原文档的格式、样式和布局
+    3. **专有名词保护**: 自动保护技术术语和专有名词不被翻译
+    4. **性能优化**: 支持缓存和批量处理，提升翻译速度
     
-    2. **语义增强翻译**: 使用大语言模型进行上下文感知翻译，支持术语锁定和风格模仿
+    ### 📝 使用步骤
     
-    3. **格式智能重建**: 利用锚点映射技术，智能重建文档结构，处理翻译长度变化
+    1. **设置API密钥**: 在侧边栏输入OpenAI API密钥
+    2. **选择目标语言**: 选择要翻译成的目标语言
+    3. **上传文档**: 上传.docx格式的Word文档
+    4. **开始翻译**: 点击"开始智能翻译"按钮
+    5. **下载结果**: 下载翻译后的文档
     
-    4. **双视图编辑器**: 左右对比显示原文和译文，支持实时编辑和同步
+    ### ⚠️ 注意事项
     
-    5. **自动格式纠错**: 检测和修复翻译后的排版问题，确保文档质量
-    
-    ### 💡 使用技巧
-    
-    - **术语锁定**: 输入JSON格式的术语对照表，确保专业术语翻译一致
-    - **风格模仿**: 提供风格示例，让AI模仿特定的翻译风格
-    - **双视图编辑**: 使用双视图编辑器进行精细调整
-    - **格式纠错**: 启用自动格式纠错，确保最终文档质量
+    - 仅支持.docx格式的Word文档
+    - 需要有效的OpenAI API密钥
+    - 翻译质量取决于文档复杂度和API配额
+    - 建议先测试小文档，确认效果后再处理大文档
     """)
 
 if __name__ == "__main__":
