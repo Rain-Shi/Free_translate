@@ -75,7 +75,7 @@ def main():
             st.info("🚀 性能优化已启用：缓存翻译结果，批量处理短文本")
         
         # 显示设置
-        show_dual_view = st.checkbox("显示段落对比", value=True, help="显示原文和译文的段落对比功能")
+        show_dual_view = st.checkbox("显示左右编辑界面", value=True, help="显示左右分开的编辑界面，可以修改译文并输出最终文档")
     
     # 主界面
     col1, col2 = st.columns([2, 1])
@@ -171,26 +171,57 @@ def main():
                         # 显示成功信息
                         st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
                         
-                        # 段落对比功能
+                        # 左右编辑界面
                         st.markdown("---")
-                        st.subheader("📖 段落对比")
+                        st.subheader("📝 左右编辑界面")
                         
-                        # 初始化段落对比器
-                        from simple_comparison import SimpleParagraphComparison
-                        comparison = SimpleParagraphComparison()
+                        # 初始化左右编辑界面
+                        from dual_edit_interface import DualEditInterface
+                        edit_interface = DualEditInterface()
                         
-                        # 加载文档进行对比
-                        if comparison.load_documents(tmp_file_path, output_path):
-                            # 显示文档摘要
-                            comparison.display_summary()
+                        # 加载文档进行编辑
+                        if edit_interface.load_documents(tmp_file_path, output_path):
+                            # 显示编辑摘要
+                            edit_interface.display_edit_summary()
                             
-                            # 显示段落对比
-                            comparison.display_comparison()
+                            # 显示左右编辑界面
+                            edit_interface.display_dual_edit_interface()
                             
-                            # 显示所有段落概览
-                            comparison.display_all_paragraphs()
+                            # 显示所有段落编辑
+                            edit_interface.display_all_paragraphs_edit()
+                            
+                            # 最终输出
+                            st.markdown("---")
+                            st.subheader("📤 最终输出")
+                            
+                            if st.button("📄 生成最终文档", type="primary"):
+                                with st.spinner("正在生成最终文档..."):
+                                    final_output_path = tempfile.mktemp(suffix='.docx')
+                                    
+                                    if edit_interface.create_final_document(final_output_path):
+                                        st.success("✅ 最终文档生成成功！")
+                                        
+                                        # 读取最终文档
+                                        with open(final_output_path, 'rb') as f:
+                                            final_data = f.read()
+                                        
+                                        # 提供下载
+                                        st.download_button(
+                                            label="📥 下载最终文档",
+                                            data=final_data,
+                                            file_name=f"final_{uploaded_file.name}",
+                                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                        )
+                                        
+                                        # 清理临时文件
+                                        try:
+                                            os.unlink(final_output_path)
+                                        except:
+                                            pass
+                                    else:
+                                        st.error("❌ 最终文档生成失败")
                         else:
-                            st.warning("⚠️ 无法加载文档进行对比")
+                            st.warning("⚠️ 无法加载文档进行编辑")
                         
                         # 显示使用提示
                         st.info("💡 提示：翻译后的文档已保持原有格式，可以直接使用。")
