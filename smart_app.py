@@ -106,6 +106,12 @@ def main():
                 st.markdown("- 公司/组织名（如：Google, Microsoft）")
                 st.markdown("- 产品名称（如：ChatGPT, GitHub Copilot）")
         
+        # 性能优化
+        st.markdown("**性能优化设置**")
+        use_performance_optimization = st.checkbox("启用性能优化", value=True, help="使用缓存和批量处理提升翻译速度")
+        if use_performance_optimization:
+            st.info("🚀 性能优化已启用：缓存翻译结果，批量处理短文本")
+        
         # 格式纠错
         st.markdown("**格式纠错设置**")
         auto_format_correction = st.checkbox("自动格式纠错", value=True)
@@ -182,10 +188,39 @@ def main():
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as output_file:
                     output_path = output_file.name
                 
-                # 执行智能翻译
-                success = translator_system.process_document(
-                    tmp_file_path, target_lang_code, output_path
-                )
+                # 性能优化处理
+                if use_performance_optimization:
+                    st.info("🚀 使用性能优化模式...")
+                    from performance_optimizer import PerformanceOptimizer
+                    optimizer = PerformanceOptimizer()
+                    
+                    # 解析文档
+                    parser = StructuralParser()
+                    parsed_result = parser.parse_document(tmp_file_path)
+                    
+                    if parsed_result:
+                        # 优化翻译
+                        content_items = parsed_result['content_layer']
+                        optimized_items = optimizer.optimize_translation_process(
+                            content_items, target_lang_code, translator_system.translator
+                        )
+                        
+                        # 重建文档
+                        reconstructor = SmartReconstructor()
+                        success = reconstructor.reconstruct_document(
+                            tmp_file_path, optimized_items, 
+                            parsed_result['format_layer'], 
+                            parsed_result['layout_layer'], 
+                            output_path
+                        )
+                    else:
+                        st.error("❌ 文档解析失败")
+                        success = False
+                else:
+                    # 执行智能翻译
+                    success = translator_system.process_document(
+                        tmp_file_path, target_lang_code, output_path
+                    )
                 
                 if success:
                     st.success("🎉 智能翻译完成！")
