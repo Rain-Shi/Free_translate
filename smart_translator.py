@@ -447,29 +447,23 @@ class SemanticTranslator:
         """
     
     def _translate_paragraph(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译段落 - 带AI智能专有名词保护"""
+        """翻译段落 - 简化版，移除AI智能识别"""
         try:
             original_text = item['text']
             
-            # 使用AI智能识别和保护特殊名称
-            protected_text, ai_noun_mapping = self._protect_special_names_with_ai(original_text)
+            # 只使用传统专有名词保护
+            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
             
-            # 同时使用传统专有名词保护
-            protected_text, traditional_noun_mapping = self._protect_proper_nouns(protected_text)
-            
-            # 合并映射表
-            combined_mapping = {**ai_noun_mapping, **traditional_noun_mapping}
-            
-            # 构建翻译提示，强调不要翻译特殊名称
-            special_name_instruction = ""
-            if combined_mapping:
-                protected_names = list(combined_mapping.values())
-                special_name_instruction = f"\n重要：请保持以下特殊名称不变：{', '.join(protected_names)}"
+            # 构建翻译提示
+            proper_noun_instruction = ""
+            if noun_mapping:
+                protected_names = list(noun_mapping.values())
+                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_names)}"
             
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}{special_name_instruction}"},
+                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
                     {"role": "user", "content": f"Translate this paragraph to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=1000,
@@ -478,8 +472,8 @@ class SemanticTranslator:
             
             translated_text = response.choices[0].message.content
             
-            # 恢复所有特殊名称
-            final_text = self._restore_proper_nouns(translated_text, combined_mapping)
+            # 恢复专有名词
+            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
             
             return final_text
         except Exception as e:
@@ -487,29 +481,23 @@ class SemanticTranslator:
             return item['text']
     
     def _translate_table_cell(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译表格单元格 - 带AI智能专有名词保护"""
+        """翻译表格单元格 - 简化版，移除AI智能识别"""
         try:
             original_text = item['text']
             
-            # 使用AI智能识别和保护特殊名称
-            protected_text, ai_noun_mapping = self._protect_special_names_with_ai(original_text)
+            # 只使用传统专有名词保护
+            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
             
-            # 同时使用传统专有名词保护
-            protected_text, traditional_noun_mapping = self._protect_proper_nouns(protected_text)
-            
-            # 合并映射表
-            combined_mapping = {**ai_noun_mapping, **traditional_noun_mapping}
-            
-            # 构建翻译提示，强调不要翻译特殊名称
-            special_name_instruction = ""
-            if combined_mapping:
-                protected_names = list(combined_mapping.values())
-                special_name_instruction = f"\n重要：请保持以下特殊名称不变：{', '.join(protected_names)}"
+            # 构建翻译提示
+            proper_noun_instruction = ""
+            if noun_mapping:
+                protected_names = list(noun_mapping.values())
+                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_names)}"
             
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}{special_name_instruction}"},
+                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
                     {"role": "user", "content": f"Translate this table cell content to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=500,
@@ -518,8 +506,8 @@ class SemanticTranslator:
             
             translated_text = response.choices[0].message.content
             
-            # 恢复所有特殊名称
-            final_text = self._restore_proper_nouns(translated_text, combined_mapping)
+            # 恢复专有名词
+            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
             
             return final_text
         except Exception as e:

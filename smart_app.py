@@ -86,25 +86,13 @@ def main():
         use_proper_noun_protection = st.checkbox("启用专有名词保护", value=True)
         
         if use_proper_noun_protection:
-            # AI智能识别选项
-            use_ai_identification = st.checkbox("启用AI智能识别", value=True, help="使用OpenAI智能识别GitHub库名、项目名等特殊名称")
-            
-            custom_proper_nouns = ""
-            if not use_ai_identification:
-                custom_proper_nouns = st.text_area(
-                    "自定义专有名词 (每行一个)",
-                    value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript",
-                    height=100,
-                    help="输入需要保护的专有名词，每行一个。系统已内置常见技术专有名词。"
-                )
-            else:
-                st.info("🤖 AI智能识别已启用，将自动识别GitHub库名、项目名等特殊名称")
-                st.markdown("**AI识别范围：**")
-                st.markdown("- GitHub库名（如：naiveHobo/InvoiceNet）")
-                st.markdown("- 项目名称（如：React, Vue.js）")
-                st.markdown("- 技术框架名（如：TensorFlow, PyTorch）")
-                st.markdown("- 公司/组织名（如：Google, Microsoft）")
-                st.markdown("- 产品名称（如：ChatGPT, GitHub Copilot）")
+            custom_proper_nouns = st.text_area(
+                "自定义专有名词 (每行一个)",
+                value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript\nnaiveHobo/InvoiceNet",
+                height=100,
+                help="输入需要保护的专有名词，每行一个。系统已内置常见技术专有名词。"
+            )
+            st.info("ℹ️ 使用内置专有名词保护（GitHub、OpenAI、Python等）")
         
         # 性能优化
         st.markdown("**性能优化设置**")
@@ -167,9 +155,7 @@ def main():
         
         # 设置专有名词保护
         if use_proper_noun_protection:
-            if use_ai_identification:
-                st.success("✅ AI智能识别已启用，将自动识别和保护特殊名称")
-            elif custom_proper_nouns:
+            if custom_proper_nouns:
                 try:
                     # 解析自定义专有名词
                     custom_nouns = [noun.strip() for noun in custom_proper_nouns.split('\n') if noun.strip()]
