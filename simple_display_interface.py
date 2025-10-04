@@ -56,11 +56,11 @@ class SimpleDisplayInterface:
         # 显示翻译结果对比
         st.markdown("### 📊 翻译结果对比")
         
-        # 使用tabs来展示原文和译文
-        tab1, tab2 = st.tabs(["📝 原文", "🌐 译文"])
+        # 使用左右两列布局展示原文和译文
+        col1, col2 = st.columns(2)
         
-        with tab1:
-            st.markdown("#### 原文档内容")
+        with col1:
+            st.markdown("#### 📝 原文")
             for i, paragraph in enumerate(self.original_paragraphs):
                 if paragraph.strip():
                     st.markdown(f"**段落 {i+1}:**")
@@ -74,8 +74,8 @@ class SimpleDisplayInterface:
                     st.markdown(f"字数: {len(paragraph)}")
                     st.markdown("---")
         
-        with tab2:
-            st.markdown("#### 翻译后内容")
+        with col2:
+            st.markdown("#### 🌐 译文")
             for i, paragraph in enumerate(self.translated_paragraphs):
                 if paragraph.strip():
                     st.markdown(f"**段落 {i+1}:**")
