@@ -6,6 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--3.5--turbo-green.svg)](https://openai.com)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/Rain-Shi/Free_translate.svg)](https://github.com/Rain-Shi/Free_translate/stargazers)
 
 ## 🚀 项目概述
 
@@ -88,8 +89,8 @@
 
 1. **克隆项目**
 ```bash
-git clone https://github.com/yourusername/smart-document-translator.git
-cd smart-document-translator
+git clone https://github.com/Rain-Shi/Free_translate.git
+cd Free_translate
 ```
 
 2. **创建虚拟环境**
@@ -250,10 +251,12 @@ smart_app.py                 # 主应用界面
 
 ## 📞 联系我们
 
-- **项目主页**：https://github.com/yourusername/smart-document-translator
-- **问题反馈**：https://github.com/yourusername/smart-document-translator/issues
-- **功能建议**：https://github.com/yourusername/smart-document-translator/discussions
+- **项目主页**：https://github.com/Rain-Shi/Free_translate
+- **问题反馈**：https://github.com/Rain-Shi/Free_translate/issues
+- **功能建议**：https://github.com/Rain-Shi/Free_translate/discussions
 
 ---
 
 **🎉 感谢使用智能文档翻译与格式保真系统！让我们一起推动文档翻译技术的进步！**
+
+## ⭐ 如果这个项目对您有帮助，请给我们一个Star！
