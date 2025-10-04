@@ -1,6 +1,6 @@
 """
-智能文档翻译与格式保真系统
-基于创新的混合策略：结构分层解析 + 语义增强翻译 + 格式智能重建
+Intelligent Document Translation and Format Fidelity System
+Based on innovative hybrid strategy: Structural Layer Extraction + Semantic-Aware Translation + Smart Format Reconstruction
 """
 
 import streamlit as st
@@ -16,21 +16,21 @@ from typing import Dict, List, Tuple, Any
 import openai
 
 class StructuralParser:
-    """结构分层解析器 - 将文档分解为内容层、格式层、布局层"""
+    """Structural Layer Parser - Decomposes documents into content layer, format layer, layout layer"""
     
     def __init__(self):
-        self.content_layer = []  # 纯文本内容
-        self.format_layer = []   # 格式信息
-        self.layout_layer = []   # 布局信息
-        self.anchors = {}        # 锚点映射
+        self.content_layer = []  # Pure text content
+        self.format_layer = []   # Format information
+        self.layout_layer = []   # Layout information
+        self.anchors = {}        # Anchor mappings
     
     def parse_document(self, doc_path: str) -> Dict[str, Any]:
-        """解析Word文档，提取三层信息"""
+        """Parse Word document, extract three-layer information"""
         try:
-            # 使用更安全的文档加载方式
+            # Use safer document loading method
             doc = Document(doc_path)
             
-            # 初始化解析结果
+            # Initialize parsing results
             result = {
                 'content_layer': [],
                 'format_layer': [],
@@ -44,7 +44,7 @@ class StructuralParser:
                 }
             }
             
-            # 解析段落
+            # Parse paragraphs
             for i, paragraph in enumerate(doc.paragraphs):
                 try:
                     if paragraph.text.strip():
@@ -1172,22 +1172,22 @@ class SmartDocumentTranslator:
         self.editor = DualViewEditor()
     
     def set_translator(self, api_key: str):
-        """设置翻译器"""
+        """Set translator"""
         self.translator = SemanticTranslator(api_key)
     
     def process_document(self, doc_path: str, target_lang: str, output_path: str) -> bool:
-        """处理文档的完整流程"""
+        """Complete document processing workflow"""
         try:
             # 1. 结构分层解析
-            st.info("🔍 正在进行结构分层解析...")
+            st.info("🔍 Performing structural layer extraction...")
             parsed_doc = self.parser.parse_document(doc_path)
             if not parsed_doc:
                 return False
             
             # 2. 语义增强翻译
-            st.info("🤖 正在进行语义增强翻译...")
+            st.info("🤖 Performing semantic-enhanced translation...")
             if not self.translator:
-                st.error("请先设置翻译器")
+                st.error("Please set translator first")
                 return False
             
             translated_content = self.translator.translate_with_context(
@@ -1195,7 +1195,7 @@ class SmartDocumentTranslator:
             )
             
             # 3. 格式智能重建
-            st.info("🔧 正在进行格式智能重建...")
+            st.info("🔧 Performing intelligent format reconstruction...")
             success = self.reconstructor.reconstruct_document(
                 doc_path, translated_content, 
                 parsed_doc['format_layer'], parsed_doc['layout_layer'], 
@@ -1204,10 +1204,10 @@ class SmartDocumentTranslator:
             
             if success:
                 # 4. 格式纠错
-                st.info("🔍 正在进行格式纠错...")
+                st.info("🔍 Performing format correction...")
                 issues = self.corrector.detect_format_issues(output_path)
                 if issues:
-                    st.warning(f"发现 {len(issues)} 个格式问题，正在自动修复...")
+                    st.warning(f"Found {len(issues)} format issues, automatically repairing...")
                     self.corrector.auto_fix_issues(output_path, issues)
                 
                 return True
