@@ -171,21 +171,21 @@ def main():
                         # 显示成功信息
                         st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
                         
-                        # 无重新运行编辑界面
+                        # 简单展示界面
                         st.markdown("---")
-                        st.subheader("📝 无重新运行编辑界面")
+                        st.subheader("📄 翻译结果展示")
                         
-                        # 初始化无重新运行编辑界面
-                        from no_rerun_edit_interface import NoRerunEditInterface
-                        edit_interface = NoRerunEditInterface()
+                        # 初始化简单展示界面
+                        from simple_display_interface import SimpleDisplayInterface
+                        display_interface = SimpleDisplayInterface()
                         
-                        # 加载文档进行编辑
-                        if edit_interface.load_documents(tmp_file_path, output_path):
-                            # 显示编辑摘要
-                            edit_interface.display_edit_summary()
+                        # 加载文档进行展示
+                        if display_interface.load_documents(tmp_file_path, output_path):
+                            # 显示翻译摘要
+                            display_interface.display_translation_summary()
                             
-                            # 显示无重新运行编辑界面
-                            edit_interface.display_no_rerun_edit_interface()
+                            # 显示简单展示界面
+                            display_interface.display_simple_interface()
                             
                             # 最终输出
                             st.markdown("---")
