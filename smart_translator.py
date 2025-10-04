@@ -262,6 +262,75 @@ class SemanticTranslator:
         
         return protected_text, noun_mapping
     
+    def _identify_special_names_with_ai(self, text: str) -> List[str]:
+        """使用OpenAI智能识别特殊名称（GitHub库名、项目名等）"""
+        try:
+            # 构建识别提示
+            prompt = f"""
+请仔细分析以下文本，识别出所有应该保持不变的特殊名称，包括但不限于：
+
+1. GitHub库名（如：naiveHobo/InvoiceNet, microsoft/TypeScript）
+2. 项目名称（如：React, Vue.js, Angular）
+3. 技术框架名（如：TensorFlow, PyTorch, Scikit-learn）
+4. 公司/组织名（如：Google, Microsoft, OpenAI）
+5. 产品名称（如：ChatGPT, GitHub Copilot）
+6. 协议/标准（如：HTTP, JSON, XML）
+7. 编程语言（如：Python, JavaScript, TypeScript）
+
+文本内容：{text}
+
+请只返回识别出的特殊名称，每行一个，不要包含任何解释或其他内容。
+如果文本中没有特殊名称，请返回空行。
+"""
+            
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "你是一个专业的文本分析助手，专门识别技术文档中的特殊名称。"},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.1
+            )
+            
+            # 解析返回的特殊名称
+            identified_names = []
+            response_text = response.choices[0].message.content.strip()
+            
+            if response_text:
+                for line in response_text.split('\n'):
+                    name = line.strip()
+                    if name and name in text:
+                        identified_names.append(name)
+            
+            return identified_names
+            
+        except Exception as e:
+            print(f"AI识别特殊名称失败: {str(e)}")
+            return []
+    
+    def _protect_special_names_with_ai(self, text: str) -> Tuple[str, Dict[str, str]]:
+        """使用AI智能保护特殊名称"""
+        try:
+            # 使用AI识别特殊名称
+            special_names = self._identify_special_names_with_ai(text)
+            
+            protected_text = text
+            noun_mapping = {}
+            
+            # 保护AI识别的特殊名称
+            for name in special_names:
+                if name in protected_text:
+                    placeholder = f"__SPECIAL_NAME_{len(noun_mapping)}__"
+                    noun_mapping[placeholder] = name
+                    protected_text = protected_text.replace(name, placeholder)
+            
+            return protected_text, noun_mapping
+            
+        except Exception as e:
+            print(f"AI保护特殊名称失败: {str(e)}")
+            return text, {}
+    
     def _restore_proper_nouns(self, text: str, noun_mapping: Dict[str, str]) -> str:
         """恢复专有名词"""
         restored_text = text
@@ -347,23 +416,29 @@ class SemanticTranslator:
         """
     
     def _translate_paragraph(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译段落 - 带专有名词保护"""
+        """翻译段落 - 带AI智能专有名词保护"""
         try:
             original_text = item['text']
             
-            # 保护专有名词
-            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
+            # 使用AI智能识别和保护特殊名称
+            protected_text, ai_noun_mapping = self._protect_special_names_with_ai(original_text)
             
-            # 构建翻译提示，强调不要翻译专有名词
-            proper_noun_instruction = ""
-            if noun_mapping:
-                protected_nouns = list(noun_mapping.values())
-                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_nouns)}"
+            # 同时使用传统专有名词保护
+            protected_text, traditional_noun_mapping = self._protect_proper_nouns(protected_text)
+            
+            # 合并映射表
+            combined_mapping = {**ai_noun_mapping, **traditional_noun_mapping}
+            
+            # 构建翻译提示，强调不要翻译特殊名称
+            special_name_instruction = ""
+            if combined_mapping:
+                protected_names = list(combined_mapping.values())
+                special_name_instruction = f"\n重要：请保持以下特殊名称不变：{', '.join(protected_names)}"
             
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
+                    {"role": "system", "content": f"You are a professional document translator. {context}{special_name_instruction}"},
                     {"role": "user", "content": f"Translate this paragraph to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=1000,
@@ -372,8 +447,8 @@ class SemanticTranslator:
             
             translated_text = response.choices[0].message.content
             
-            # 恢复专有名词
-            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
+            # 恢复所有特殊名称
+            final_text = self._restore_proper_nouns(translated_text, combined_mapping)
             
             return final_text
         except Exception as e:
@@ -381,23 +456,29 @@ class SemanticTranslator:
             return item['text']
     
     def _translate_table_cell(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译表格单元格 - 带专有名词保护"""
+        """翻译表格单元格 - 带AI智能专有名词保护"""
         try:
             original_text = item['text']
             
-            # 保护专有名词
-            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
+            # 使用AI智能识别和保护特殊名称
+            protected_text, ai_noun_mapping = self._protect_special_names_with_ai(original_text)
             
-            # 构建翻译提示，强调不要翻译专有名词
-            proper_noun_instruction = ""
-            if noun_mapping:
-                protected_nouns = list(noun_mapping.values())
-                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_nouns)}"
+            # 同时使用传统专有名词保护
+            protected_text, traditional_noun_mapping = self._protect_proper_nouns(protected_text)
+            
+            # 合并映射表
+            combined_mapping = {**ai_noun_mapping, **traditional_noun_mapping}
+            
+            # 构建翻译提示，强调不要翻译特殊名称
+            special_name_instruction = ""
+            if combined_mapping:
+                protected_names = list(combined_mapping.values())
+                special_name_instruction = f"\n重要：请保持以下特殊名称不变：{', '.join(protected_names)}"
             
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
+                    {"role": "system", "content": f"You are a professional document translator. {context}{special_name_instruction}"},
                     {"role": "user", "content": f"Translate this table cell content to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=500,
@@ -406,8 +487,8 @@ class SemanticTranslator:
             
             translated_text = response.choices[0].message.content
             
-            # 恢复专有名词
-            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
+            # 恢复所有特殊名称
+            final_text = self._restore_proper_nouns(translated_text, combined_mapping)
             
             return final_text
         except Exception as e:
