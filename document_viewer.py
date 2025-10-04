@@ -160,51 +160,73 @@ class DocumentViewer:
                 st.markdown(f"#### {text}")
             else:
                 # 可点击的段落
+                button_key = f"para_{version}_{para['index']}_{self.current_page}"
                 if st.button(
                     f"📄 段落 {para['index']+1}",
-                    key=f"para_{version}_{para['index']}_{self.current_page}",
+                    key=button_key,
                     help=f"点击查看对比 (字数: {para['word_count']})"
                 ):
-                    # 显示段落对比
-                    self._show_paragraph_comparison(para)
+                    # 设置段落对比状态
+                    comparison_key = f"show_comparison_{para['index']}_{self.current_page}"
+                    st.session_state[comparison_key] = True
+                    st.rerun()
             
             # 段落预览（前50个字符）
             preview = text[:50] + "..." if len(text) > 50 else text
             st.text(preview)
             
+            # 检查是否需要显示段落对比
+            comparison_key = f"show_comparison_{para['index']}_{self.current_page}"
+            if comparison_key in st.session_state and st.session_state[comparison_key]:
+                self._show_paragraph_comparison(para)
+            
             st.markdown("---")
     
     def _show_paragraph_comparison(self, paragraph: Dict):
         """显示段落对比"""
-        st.markdown("---")
-        st.markdown("### 🔍 段落详细对比")
+        # 使用session_state来管理段落对比状态
+        comparison_key = f"show_comparison_{paragraph['index']}_{self.current_page}"
         
-        # 创建对比布局
-        col1, col2 = st.columns(2)
+        if comparison_key not in st.session_state:
+            st.session_state[comparison_key] = False
         
-        with col1:
-            st.markdown("**📝 原文**")
-            st.text_area(
-                "原文内容",
-                value=paragraph['original_text'],
-                height=150,
-                key=f"orig_detail_{paragraph['index']}_{self.current_page}"
-            )
-        
-        with col2:
-            st.markdown("**🌐 译文**")
-            st.text_area(
-                "译文内容", 
-                value=paragraph['translated_text'],
-                height=150,
-                key=f"trans_detail_{paragraph['index']}_{self.current_page}"
-            )
-        
-        # 统计信息
-        self._display_paragraph_stats(paragraph)
-        
-        # 编辑功能
-        self._display_edit_options(paragraph)
+        if st.session_state[comparison_key]:
+            st.markdown("---")
+            st.markdown("### 🔍 段落详细对比")
+            
+            # 创建对比布局
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**📝 原文**")
+                st.text_area(
+                    "原文内容",
+                    value=paragraph['original_text'],
+                    height=150,
+                    key=f"orig_detail_{paragraph['index']}_{self.current_page}",
+                    disabled=True
+                )
+            
+            with col2:
+                st.markdown("**🌐 译文**")
+                st.text_area(
+                    "译文内容", 
+                    value=paragraph['translated_text'],
+                    height=150,
+                    key=f"trans_detail_{paragraph['index']}_{self.current_page}",
+                    disabled=True
+                )
+            
+            # 统计信息
+            self._display_paragraph_stats(paragraph)
+            
+            # 编辑功能
+            self._display_edit_options(paragraph)
+            
+            # 关闭按钮
+            if st.button("❌ 关闭对比", key=f"close_comparison_{paragraph['index']}_{self.current_page}"):
+                st.session_state[comparison_key] = False
+                st.rerun()
     
     def _display_paragraph_stats(self, paragraph: Dict):
         """显示段落统计信息"""
@@ -231,7 +253,8 @@ class DocumentViewer:
         
         with col1:
             if st.button("📝 编辑译文", key=f"edit_{paragraph['index']}_{self.current_page}"):
-                st.session_state[f"editing_{paragraph['index']}"] = True
+                st.session_state[f"editing_{paragraph['index']}_{self.current_page}"] = True
+                st.rerun()
         
         with col2:
             if st.button("🔄 重新翻译", key=f"retranslate_{paragraph['index']}_{self.current_page}"):
@@ -240,6 +263,10 @@ class DocumentViewer:
         with col3:
             if st.button("✅ 确认", key=f"confirm_{paragraph['index']}_{self.current_page}"):
                 st.success("✅ 段落已确认")
+                # 关闭对比
+                comparison_key = f"show_comparison_{paragraph['index']}_{self.current_page}"
+                st.session_state[comparison_key] = False
+                st.rerun()
     
     def _display_paragraph_comparison(self):
         """显示段落对比功能"""
