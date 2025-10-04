@@ -289,7 +289,8 @@ class SemanticTranslator:
                 # 创建占位符
                 placeholder = f"__PROPER_NOUN_{len(noun_mapping)}__"
                 noun_mapping[placeholder] = noun
-                protected_text = protected_text.replace(noun, placeholder)
+                # 使用更精确的替换，避免重复替换
+                protected_text = protected_text.replace(noun, placeholder, 1)
         
         return protected_text, noun_mapping
     
@@ -363,10 +364,18 @@ class SemanticTranslator:
             return text, {}
     
     def _restore_proper_nouns(self, text: str, noun_mapping: Dict[str, str]) -> str:
-        """恢复专有名词"""
+        """恢复专有名词 - 改进版，避免重复恢复"""
         restored_text = text
-        for placeholder, noun in noun_mapping.items():
-            restored_text = restored_text.replace(placeholder, noun)
+        
+        # 按占位符长度排序，优先恢复长占位符
+        sorted_placeholders = sorted(noun_mapping.keys(), key=len, reverse=True)
+        
+        for placeholder in sorted_placeholders:
+            if placeholder in restored_text:
+                noun = noun_mapping[placeholder]
+                # 确保只替换一次，避免重复
+                restored_text = restored_text.replace(placeholder, noun, 1)
+        
         return restored_text
     
     def translate_with_context(self, content_items: List[Dict], target_lang: str) -> List[Dict]:
