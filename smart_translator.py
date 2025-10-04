@@ -76,11 +76,13 @@ class StructuralParser:
                     result['format_layer'].append(format_info)
                     
                     # 布局层：结构信息
+                    page_number = self._detect_page_number(paragraph, i)
                     layout_info = {
                         'id': f'para_{i}',
                         'is_heading': paragraph.style.name.startswith('Heading'),
                         'heading_level': self._get_heading_level(paragraph.style.name),
-                        'page_break_before': paragraph._element.getparent().tag.endswith('pPr')
+                        'page_break_before': paragraph._element.getparent().tag.endswith('pPr'),
+                        'page_number': page_number
                     }
                     result['layout_layer'].append(layout_info)
                     
@@ -128,6 +130,33 @@ class StructuralParser:
             return 6
         return 0
     
+    def _detect_page_number(self, paragraph, para_index):
+        """检测页面编号"""
+        # 简单的页面检测逻辑
+        # 可以根据段落样式、内容等判断页面
+        
+        # 检查是否是标题样式（可能表示新页面）
+        if paragraph.style and paragraph.style.name.startswith('Heading'):
+            # 根据标题级别估算页面
+            if 'Heading 1' in paragraph.style.name:
+                return max(1, para_index // 10)  # 每10个段落一页
+            elif 'Heading 2' in paragraph.style.name:
+                return max(1, para_index // 15)
+        
+        # 检查段落内容是否包含分页符
+        if '\f' in paragraph.text or '---' in paragraph.text:
+            return max(1, para_index // 8)
+        
+        # 默认按段落数量估算页面
+        return max(1, para_index // 12)  # 每12个段落一页
+    
+    def _detect_page_number_for_table(self, table_index, row_idx):
+        """检测表格的页面编号"""
+        # 根据表格索引和行索引估算页面
+        # 每个表格大约占1-2页
+        base_page = max(1, table_index * 2)
+        return base_page + (row_idx // 20)  # 每20行一页
+    
     def _parse_table(self, table, table_index: int) -> Dict[str, List]:
         """解析表格 - 修复重复问题"""
         content = []
@@ -172,12 +201,14 @@ class StructuralParser:
                 })
                 
                 # 布局层
+                page_number = self._detect_page_number_for_table(table_index, row_idx)
                 layout_info.append({
                     'id': cell_id,
                     'type': 'table_cell',
                     'table_index': table_index,
                     'row': row_idx,
-                    'col': col_idx
+                    'col': col_idx,
+                    'page_number': page_number
                 })
         
         return {
@@ -684,20 +715,215 @@ class DualViewEditor:
         """显示双视图 - 修复重复内容问题"""
         st.subheader("📖 双视图编辑器")
         
-        # 去重处理
-        original_unique = self._deduplicate_items(original_items)
-        translated_unique = self._deduplicate_items(translated_items)
+        # 添加视图模式选择
+        view_mode = st.radio(
+            "选择查看模式",
+            ["整体对比", "页面对比"],
+            horizontal=True
+        )
+        
+        if view_mode == "页面对比":
+            self.display_page_comparison(original_items, translated_items)
+        else:
+            # 去重处理
+            original_unique = self._deduplicate_items(original_items)
+            translated_unique = self._deduplicate_items(translated_items)
+            
+            # 创建两列布局
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("### 📄 原文")
+                self._display_content(original_unique, "original")
+            
+            with col2:
+                st.markdown("### 🌐 译文")
+                self._display_content(translated_unique, "translated")
+    
+    def display_page_comparison(self, original_items, translated_items):
+        """显示页面对比视图"""
+        st.subheader("📖 页面内容对比")
+        
+        # 按页面组织内容
+        original_pages = self._organize_by_pages(original_items)
+        translated_pages = self._organize_by_pages(translated_items)
+        
+        # 获取所有页面
+        all_pages = set(original_pages.keys()) | set(translated_pages.keys())
+        
+        if not all_pages:
+            st.info("📄 未检测到分页信息，显示整体内容对比")
+            self._display_content_comparison(original_items, translated_items)
+            return
+        
+        # 页面选择器
+        selected_page = st.selectbox(
+            "选择页面查看",
+            options=sorted(all_pages),
+            format_func=lambda x: f"第 {x} 页" if x > 0 else "封面/前言"
+        )
+        
+        # 显示选中页面的内容
+        if selected_page in original_pages and selected_page in translated_pages:
+            self._display_page_content(selected_page, original_pages[selected_page], translated_pages[selected_page])
+        elif selected_page in original_pages:
+            st.warning(f"第 {selected_page} 页只有原文，没有译文")
+            self._display_original_page(selected_page, original_pages[selected_page])
+        elif selected_page in translated_pages:
+            st.warning(f"第 {selected_page} 页只有译文，没有原文")
+            self._display_translated_page(selected_page, translated_pages[selected_page])
+    
+    def _organize_by_pages(self, items):
+        """按页面组织内容项"""
+        pages = {}
+        
+        for item in items:
+            # 尝试从布局信息中获取页面信息
+            page_num = item.get('layout', {}).get('page_number', 0)
+            
+            if page_num not in pages:
+                pages[page_num] = []
+            
+            pages[page_num].append(item)
+        
+        return pages
+    
+    def _display_page_content(self, page_num, original_items, translated_items):
+        """显示页面内容对比"""
+        st.markdown(f"### 📄 第 {page_num} 页内容对比")
         
         # 创建两列布局
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("### 📄 原文")
-            self._display_content(original_unique, "original")
+            st.markdown("**📝 原文**")
+            self._display_page_items(original_items, "original")
         
         with col2:
-            st.markdown("### 🌐 译文")
-            self._display_content(translated_unique, "translated")
+            st.markdown("**🌐 译文**")
+            self._display_page_items(translated_items, "translated")
+        
+        # 显示页面统计
+        self._display_page_stats(page_num, original_items, translated_items)
+    
+    def _display_page_items(self, items, view_type):
+        """显示页面内容项"""
+        if not items:
+            st.info("该页面没有内容")
+            return
+        
+        # 按类型分组显示
+        paragraphs = [item for item in items if item.get('type') == 'paragraph']
+        table_cells = [item for item in items if item.get('type') == 'table_cell']
+        
+        # 显示段落
+        if paragraphs:
+            st.markdown("**段落内容:**")
+            for i, item in enumerate(paragraphs):
+                with st.expander(f"段落 {i+1}", expanded=False):
+                    if view_type == "original":
+                        st.text_area("原文", value=item.get('text', ''), height=100, key=f"orig_para_{i}")
+                    else:
+                        st.text_area("译文", value=item.get('translated_text', item.get('text', '')), height=100, key=f"trans_para_{i}")
+        
+        # 显示表格
+        if table_cells:
+            st.markdown("**表格内容:**")
+            self._display_table_content(table_cells, view_type)
+    
+    def _display_table_content(self, table_cells, view_type):
+        """显示表格内容"""
+        import pandas as pd
+        
+        # 按表格分组
+        tables = {}
+        for cell in table_cells:
+            table_idx = cell.get('table_index', 0)
+            if table_idx not in tables:
+                tables[table_idx] = []
+            tables[table_idx].append(cell)
+        
+        for table_idx, cells in tables.items():
+            st.markdown(f"**表格 {table_idx + 1}:**")
+            
+            # 构建表格数据
+            table_data = {}
+            for cell in cells:
+                row = cell.get('row', 0)
+                col = cell.get('col', 0)
+                
+                if row not in table_data:
+                    table_data[row] = {}
+                
+                if view_type == "original":
+                    table_data[row][col] = cell.get('text', '')
+                else:
+                    table_data[row][col] = cell.get('translated_text', cell.get('text', ''))
+            
+            # 转换为DataFrame显示
+            if table_data:
+                df = pd.DataFrame.from_dict(table_data, orient='index')
+                df = df.fillna('')  # 填充空值
+                st.dataframe(df, use_container_width=True)
+    
+    def _display_original_page(self, page_num, original_items):
+        """显示只有原文的页面"""
+        st.markdown(f"### 📄 第 {page_num} 页原文")
+        st.warning("该页面只有原文，没有对应的译文")
+        
+        self._display_page_items(original_items, "original")
+    
+    def _display_translated_page(self, page_num, translated_items):
+        """显示只有译文的页面"""
+        st.markdown(f"### 📄 第 {page_num} 页译文")
+        st.warning("该页面只有译文，没有对应的原文")
+        
+        self._display_page_items(translated_items, "translated")
+    
+    def _display_page_stats(self, page_num, original_items, translated_items):
+        """显示页面统计信息"""
+        # 计算统计信息
+        orig_para_count = len([item for item in original_items if item.get('type') == 'paragraph'])
+        trans_para_count = len([item for item in translated_items if item.get('type') == 'paragraph'])
+        
+        orig_table_count = len(set(item.get('table_index', 0) for item in original_items if item.get('type') == 'table_cell'))
+        trans_table_count = len(set(item.get('table_index', 0) for item in translated_items if item.get('type') == 'table_cell'))
+        
+        # 计算字符数
+        orig_chars = sum(len(item.get('text', '')) for item in original_items)
+        trans_chars = sum(len(item.get('translated_text', item.get('text', ''))) for item in translated_items)
+        
+        # 显示统计
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("段落数", f"{orig_para_count} → {trans_para_count}")
+        
+        with col2:
+            st.metric("表格数", f"{orig_table_count} → {trans_table_count}")
+        
+        with col3:
+            st.metric("字符数", f"{orig_chars} → {trans_chars}")
+        
+        with col4:
+            if orig_chars > 0:
+                ratio = trans_chars / orig_chars
+                st.metric("长度比例", f"{ratio:.2f}")
+    
+    def _display_content_comparison(self, original_items, translated_items):
+        """显示整体内容对比（无分页信息时）"""
+        st.markdown("### 📄 整体内容对比")
+        
+        # 创建两列布局
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**📝 原文**")
+            self._display_content(original_items, "original")
+        
+        with col2:
+            st.markdown("**🌐 译文**")
+            self._display_content(translated_items, "translated")
     
     def _deduplicate_items(self, items: List[Dict]) -> List[Dict]:
         """去重处理，避免重复显示"""
