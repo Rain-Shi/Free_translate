@@ -81,6 +81,18 @@ def main():
                 help="输入风格示例，让AI模仿特定的翻译风格"
             )
         
+        # 专有名词保护
+        st.markdown("**专有名词保护设置**")
+        use_proper_noun_protection = st.checkbox("启用专有名词保护", value=True)
+        custom_proper_nouns = ""
+        if use_proper_noun_protection:
+            custom_proper_nouns = st.text_area(
+                "自定义专有名词 (每行一个)",
+                value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript",
+                height=100,
+                help="输入需要保护的专有名词，每行一个。系统已内置常见技术专有名词。"
+            )
+        
         # 格式纠错
         st.markdown("**格式纠错设置**")
         auto_format_correction = st.checkbox("自动格式纠错", value=True)
@@ -133,6 +145,18 @@ def main():
                 st.success("✅ 风格模仿已设置")
             except json.JSONDecodeError:
                 st.error("❌ 风格示例格式错误，请使用正确的JSON格式")
+        
+        # 设置专有名词保护
+        if use_proper_noun_protection and custom_proper_nouns:
+            try:
+                # 解析自定义专有名词
+                custom_nouns = [noun.strip() for noun in custom_proper_nouns.split('\n') if noun.strip()]
+                translator_system.translator.add_proper_nouns(custom_nouns)
+                st.success(f"✅ 专有名词保护已设置，共保护 {len(custom_nouns)} 个自定义专有名词")
+            except Exception as e:
+                st.error(f"❌ 专有名词设置失败: {str(e)}")
+        elif use_proper_noun_protection:
+            st.info("ℹ️ 使用内置专有名词保护（GitHub、OpenAI、Python等）")
         
         # 处理按钮
         if st.button("🚀 开始智能翻译", type="primary"):

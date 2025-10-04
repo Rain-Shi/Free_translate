@@ -187,13 +187,15 @@ class StructuralParser:
         }
 
 class SemanticTranslator:
-    """语义增强翻译器 - 支持上下文记忆、术语锁定、风格模仿"""
+    """语义增强翻译器 - 支持上下文记忆、术语锁定、风格模仿、专有名词保护"""
     
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.context_memory = {}  # 上下文记忆
         self.terminology = {}     # 术语锁定
         self.style_examples = {}  # 风格示例
+        self.proper_nouns = set()  # 专有名词集合
+        self._init_proper_nouns()  # 初始化常见专有名词
         
     def set_terminology(self, terms: Dict[str, str]):
         """设置术语锁定"""
@@ -202,6 +204,70 @@ class SemanticTranslator:
     def set_style_examples(self, examples: Dict[str, str]):
         """设置风格示例"""
         self.style_examples = examples
+    
+    def _init_proper_nouns(self):
+        """初始化常见专有名词"""
+        # 技术公司/平台
+        tech_companies = [
+            'GitHub', 'Google', 'Microsoft', 'Apple', 'Amazon', 'Facebook', 'Meta',
+            'Twitter', 'LinkedIn', 'Instagram', 'YouTube', 'Netflix', 'Spotify',
+            'OpenAI', 'Anthropic', 'Claude', 'ChatGPT', 'GPT', 'DALL-E',
+            'Streamlit', 'Docker', 'Kubernetes', 'React', 'Vue', 'Angular',
+            'Node.js', 'Python', 'JavaScript', 'TypeScript', 'Java', 'C++',
+            'TensorFlow', 'PyTorch', 'Scikit-learn', 'Pandas', 'NumPy'
+        ]
+        
+        # 开源项目
+        open_source = [
+            'Linux', 'Apache', 'Nginx', 'MySQL', 'PostgreSQL', 'MongoDB',
+            'Redis', 'Elasticsearch', 'Kibana', 'Grafana', 'Prometheus',
+            'Jenkins', 'GitLab', 'Bitbucket', 'Jira', 'Confluence'
+        ]
+        
+        # 协议和标准
+        protocols = [
+            'HTTP', 'HTTPS', 'FTP', 'SSH', 'SMTP', 'POP3', 'IMAP',
+            'TCP', 'UDP', 'IP', 'DNS', 'SSL', 'TLS', 'OAuth', 'JWT',
+            'REST', 'GraphQL', 'WebSocket', 'gRPC', 'JSON', 'XML', 'YAML'
+        ]
+        
+        # 学术机构
+        universities = [
+            'MIT', 'Stanford', 'Harvard', 'Berkeley', 'CMU', 'Oxford',
+            'Cambridge', 'Yale', 'Princeton', 'Caltech', 'UCLA', 'NYU'
+        ]
+        
+        # 添加到专有名词集合
+        all_proper_nouns = tech_companies + open_source + protocols + universities
+        self.proper_nouns.update(all_proper_nouns)
+    
+    def add_proper_nouns(self, nouns: List[str]):
+        """添加自定义专有名词"""
+        self.proper_nouns.update(nouns)
+    
+    def _protect_proper_nouns(self, text: str) -> Tuple[str, Dict[str, str]]:
+        """保护专有名词，返回替换后的文本和映射表"""
+        protected_text = text
+        noun_mapping = {}
+        
+        # 按长度排序，优先匹配长专有名词
+        sorted_nouns = sorted(self.proper_nouns, key=len, reverse=True)
+        
+        for noun in sorted_nouns:
+            if noun in protected_text:
+                # 创建占位符
+                placeholder = f"__PROPER_NOUN_{len(noun_mapping)}__"
+                noun_mapping[placeholder] = noun
+                protected_text = protected_text.replace(noun, placeholder)
+        
+        return protected_text, noun_mapping
+    
+    def _restore_proper_nouns(self, text: str, noun_mapping: Dict[str, str]) -> str:
+        """恢复专有名词"""
+        restored_text = text
+        for placeholder, noun in noun_mapping.items():
+            restored_text = restored_text.replace(placeholder, noun)
+        return restored_text
     
     def translate_with_context(self, content_items: List[Dict], target_lang: str) -> List[Dict]:
         """带上下文的翻译 - 修复重复内容问题"""
@@ -281,35 +347,69 @@ class SemanticTranslator:
         """
     
     def _translate_paragraph(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译段落"""
+        """翻译段落 - 带专有名词保护"""
         try:
+            original_text = item['text']
+            
+            # 保护专有名词
+            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
+            
+            # 构建翻译提示，强调不要翻译专有名词
+            proper_noun_instruction = ""
+            if noun_mapping:
+                protected_nouns = list(noun_mapping.values())
+                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_nouns)}"
+            
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}"},
-                    {"role": "user", "content": f"Translate this paragraph to {target_lang}: {item['text']}"}
+                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
+                    {"role": "user", "content": f"Translate this paragraph to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=1000,
                 temperature=0.1
             )
-            return response.choices[0].message.content
+            
+            translated_text = response.choices[0].message.content
+            
+            # 恢复专有名词
+            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
+            
+            return final_text
         except Exception as e:
             st.warning(f"段落翻译失败: {str(e)}")
             return item['text']
     
     def _translate_table_cell(self, item: Dict, context: str, target_lang: str) -> str:
-        """翻译表格单元格"""
+        """翻译表格单元格 - 带专有名词保护"""
         try:
+            original_text = item['text']
+            
+            # 保护专有名词
+            protected_text, noun_mapping = self._protect_proper_nouns(original_text)
+            
+            # 构建翻译提示，强调不要翻译专有名词
+            proper_noun_instruction = ""
+            if noun_mapping:
+                protected_nouns = list(noun_mapping.values())
+                proper_noun_instruction = f"\n重要：请保持以下专有名词不变：{', '.join(protected_nouns)}"
+            
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": f"You are a professional document translator. {context}"},
-                    {"role": "user", "content": f"Translate this table cell content to {target_lang}: {item['text']}"}
+                    {"role": "system", "content": f"You are a professional document translator. {context}{proper_noun_instruction}"},
+                    {"role": "user", "content": f"Translate this table cell content to {target_lang}: {protected_text}"}
                 ],
                 max_tokens=500,
                 temperature=0.1
             )
-            return response.choices[0].message.content
+            
+            translated_text = response.choices[0].message.content
+            
+            # 恢复专有名词
+            final_text = self._restore_proper_nouns(translated_text, noun_mapping)
+            
+            return final_text
         except Exception as e:
             st.warning(f"表格单元格翻译失败: {str(e)}")
             return item['text']
