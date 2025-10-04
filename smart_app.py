@@ -226,44 +226,38 @@ def main():
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                     
-                    # 显示双视图编辑器
+                    # 显示智能文档查看器
                     if show_dual_view:
                         st.markdown("---")
-                        st.subheader("📖 双视图编辑器")
+                        st.subheader("📖 智能文档查看器")
                         
-                        # 解析原文档和翻译后的文档
-                        parser = StructuralParser()
-                        original_parsed = parser.parse_document(tmp_file_path)
-                        translated_parsed = parser.parse_document(output_path)
+                        # 初始化文档查看器
+                        from document_viewer import DocumentViewer
+                        viewer = DocumentViewer()
                         
-                        if original_parsed and translated_parsed:
-                            # 检测重复内容
-                            st.info("🔍 正在检测重复内容...")
+                        # 加载文档
+                        if viewer.load_documents(tmp_file_path, output_path):
+                            # 显示文档摘要
+                            viewer.display_document_summary()
                             
-                            # 统计重复内容
-                            original_texts = [item['text'] for item in original_parsed['content_layer'] if item['text'].strip()]
-                            translated_texts = [item['text'] for item in translated_parsed['content_layer'] if item['text'].strip()]
+                            # 显示文档查看器
+                            viewer.display_document_viewer()
+                        else:
+                            st.warning("⚠️ 无法加载文档，回退到传统双视图编辑器")
                             
-                            # 检测重复
-                            original_duplicates = len(original_texts) - len(set(original_texts))
-                            translated_duplicates = len(translated_texts) - len(set(translated_texts))
+                            # 回退到传统编辑器
+                            parser = StructuralParser()
+                            original_parsed = parser.parse_document(tmp_file_path)
+                            translated_parsed = parser.parse_document(output_path)
                             
-                            if original_duplicates > 0 or translated_duplicates > 0:
-                                st.warning(f"⚠️ 检测到重复内容: 原文 {original_duplicates} 处，译文 {translated_duplicates} 处")
-                                
-                                # 显示重复内容统计
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.metric("原文重复", original_duplicates)
-                                with col2:
-                                    st.metric("译文重复", translated_duplicates)
-                            
-                            # 创建双视图编辑器
-                            editor = DualViewEditor()
-                            editor.display_dual_view(
-                                original_parsed['content_layer'],
-                                translated_parsed['content_layer']
-                            )
+                            if original_parsed and translated_parsed:
+                                editor = DualViewEditor()
+                                editor.display_dual_view(
+                                    original_parsed['content_layer'],
+                                    translated_parsed['content_layer']
+                                )
+                            else:
+                                st.warning("⚠️ 无法解析文档内容")
                     
                     # 格式纠错报告
                     if auto_format_correction:
