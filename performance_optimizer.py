@@ -151,11 +151,21 @@ class PerformanceOptimizer:
                 if i % 5 == 0:
                     st.info(f"正在翻译第 {i+1}/{len(items)} 项...")
                 
-                # 翻译
+                # 翻译 - 使用现有的翻译方法
                 if item.get('type') == 'paragraph':
-                    translated_text = translator._translate_paragraph_simple(item.get('processed_text', ''), target_lang)
+                    # 创建段落项目格式
+                    para_item = {
+                        'text': item.get('processed_text', ''),
+                        'type': 'paragraph'
+                    }
+                    translated_text = translator._translate_paragraph(para_item, "", target_lang)
                 elif item.get('type') == 'table_cell':
-                    translated_text = translator._translate_table_cell_simple(item.get('processed_text', ''), target_lang)
+                    # 创建表格单元格项目格式
+                    cell_item = {
+                        'text': item.get('processed_text', ''),
+                        'type': 'table_cell'
+                    }
+                    translated_text = translator._translate_table_cell(cell_item, "", target_lang)
                 else:
                     translated_text = item.get('processed_text', '')
                 
