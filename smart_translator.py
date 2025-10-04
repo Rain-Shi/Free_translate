@@ -579,21 +579,28 @@ class SmartReconstructor:
             return False
     
     def _reconstruct_paragraphs(self, doc: Document, translation_map: Dict, format_layer: List[Dict]):
-        """重建段落"""
+        """重建段落，保持格式"""
         for i, paragraph in enumerate(doc.paragraphs):
             if paragraph.text.strip():
                 para_id = f'para_{i}'
                 if para_id in translation_map:
+                    # 获取原格式信息
+                    format_info = None
+                    for fmt in format_layer:
+                        if fmt.get('id') == para_id:
+                            format_info = fmt
+                            break
+                    
                     # 智能处理翻译长度变化
                     original_text = paragraph.text
                     translated_text = translation_map[para_id]
                     
-                    # 如果翻译长度变化不大，直接替换
+                    # 如果翻译长度变化不大，直接替换并保持格式
                     if abs(len(translated_text) - len(original_text)) / len(original_text) < 0.5:
-                        paragraph.text = translated_text
+                        self._replace_text_preserve_format(paragraph, translated_text, format_info)
                     else:
                         # 长度变化大，需要智能调整
-                        self._smart_text_replacement(paragraph, translated_text)
+                        self._smart_text_replacement(paragraph, translated_text, format_info)
     
     def _reconstruct_tables(self, doc: Document, translation_map: Dict, format_layer: List[Dict]):
         """重建表格 - 修复重复问题"""
@@ -620,22 +627,153 @@ class SmartReconstructor:
             table_index += 1
     
     def _smart_cell_replacement(self, cell, translated_text: str):
-        """智能单元格文本替换"""
-        # 清空单元格内容
-        cell.text = ""
-        # 添加翻译文本
-        cell.text = translated_text
+        """智能单元格文本替换，保持格式"""
+        try:
+            # 保存原格式信息
+            original_runs = []
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    original_runs.append({
+                        'text': run.text,
+                        'bold': run.bold,
+                        'italic': run.italic,
+                        'underline': run.underline,
+                        'font_name': run.font.name,
+                        'font_size': run.font.size,
+                        'font_color': run.font.color.rgb if run.font.color.rgb else None
+                    })
+            
+            # 清空单元格内容
+            cell.text = ""
+            
+            # 添加翻译文本，保持格式
+            if original_runs:
+                # 使用第一个run的格式作为默认格式
+                default_format = original_runs[0]
+                paragraph = cell.paragraphs[0]
+                new_run = paragraph.add_run(translated_text)
+                new_run.bold = default_format['bold']
+                new_run.italic = default_format['italic']
+                new_run.underline = default_format['underline']
+                new_run.font.name = default_format['font_name']
+                new_run.font.size = default_format['font_size']
+                if default_format['font_color']:
+                    new_run.font.color.rgb = default_format['font_color']
+            else:
+                # 如果没有原格式信息，直接添加文本
+                cell.text = translated_text
+                
+        except Exception as e:
+            # 如果格式保持失败，直接替换文本
+            cell.text = translated_text
     
-    def _smart_text_replacement(self, paragraph, translated_text: str):
-        """智能文本替换，处理长度变化"""
-        # 保持原有的run结构，但调整内容
-        runs = paragraph.runs
-        if runs:
-            # 将翻译文本分配给第一个run
-            runs[0].text = translated_text
-            # 清空其他run
-            for run in runs[1:]:
-                run.text = ""
+    def _replace_text_preserve_format(self, paragraph, translated_text: str, format_info: Dict):
+        """替换文本并保持格式"""
+        try:
+            # 保存原格式信息
+            original_runs = []
+            for run in paragraph.runs:
+                original_runs.append({
+                    'text': run.text,
+                    'bold': run.bold,
+                    'italic': run.italic,
+                    'underline': run.underline,
+                    'font_name': run.font.name,
+                    'font_size': run.font.size,
+                    'font_color': run.font.color.rgb if run.font.color.rgb else None
+                })
+            
+            # 清空段落内容
+            paragraph.text = ""
+            
+            # 添加翻译文本，保持格式
+            if original_runs:
+                # 如果有多个run，按比例分配翻译文本
+                total_original_length = sum(len(run['text']) for run in original_runs)
+                if total_original_length > 0:
+                    current_pos = 0
+                    for i, run_info in enumerate(original_runs):
+                        # 计算这个run应该包含多少翻译文本
+                        run_ratio = len(run_info['text']) / total_original_length
+                        run_text_length = int(len(translated_text) * run_ratio)
+                        
+                        # 获取这个run的翻译文本
+                        start_pos = current_pos
+                        end_pos = min(current_pos + run_text_length, len(translated_text))
+                        run_text = translated_text[start_pos:end_pos]
+                        
+                        if run_text:
+                            # 创建新的run并应用格式
+                            new_run = paragraph.add_run(run_text)
+                            new_run.bold = run_info['bold']
+                            new_run.italic = run_info['italic']
+                            new_run.underline = run_info['underline']
+                            new_run.font.name = run_info['font_name']
+                            new_run.font.size = run_info['font_size']
+                            if run_info['font_color']:
+                                new_run.font.color.rgb = run_info['font_color']
+                        
+                        current_pos = end_pos
+                else:
+                    # 如果没有原文本，使用第一个run的格式
+                    if original_runs:
+                        run_info = original_runs[0]
+                        new_run = paragraph.add_run(translated_text)
+                        new_run.bold = run_info['bold']
+                        new_run.italic = run_info['italic']
+                        new_run.underline = run_info['underline']
+                        new_run.font.name = run_info['font_name']
+                        new_run.font.size = run_info['font_size']
+                        if run_info['font_color']:
+                            new_run.font.color.rgb = run_info['font_color']
+                    else:
+                        paragraph.text = translated_text
+            else:
+                # 如果没有原格式信息，直接添加文本
+                paragraph.text = translated_text
+                
+        except Exception as e:
+            # 如果格式保持失败，直接替换文本
+            paragraph.text = translated_text
+    
+    def _smart_text_replacement(self, paragraph, translated_text: str, format_info: Dict = None):
+        """智能文本替换，保持格式"""
+        try:
+            # 保存原格式信息
+            original_runs = []
+            for run in paragraph.runs:
+                original_runs.append({
+                    'text': run.text,
+                    'bold': run.bold,
+                    'italic': run.italic,
+                    'underline': run.underline,
+                    'font_name': run.font.name,
+                    'font_size': run.font.size,
+                    'font_color': run.font.color.rgb if run.font.color.rgb else None
+                })
+            
+            # 清空段落内容
+            paragraph.text = ""
+            
+            # 添加翻译文本，保持格式
+            if original_runs:
+                # 使用第一个run的格式作为默认格式
+                default_format = original_runs[0]
+                new_run = paragraph.add_run(translated_text)
+                new_run.bold = default_format['bold']
+                new_run.italic = default_format['italic']
+                new_run.underline = default_format['underline']
+                new_run.font.name = default_format['font_name']
+                new_run.font.size = default_format['font_size']
+                if default_format['font_color']:
+                    new_run.font.color.rgb = default_format['font_color']
+            else:
+                # 如果没有原格式信息，直接添加文本
+                paragraph.text = translated_text
+                
+        except Exception as e:
+            # 如果格式保持失败，直接替换文本
+            paragraph.text = translated_text
 
 class FormatCorrector:
     """格式纠错模块 - 检测和修复排版问题"""
