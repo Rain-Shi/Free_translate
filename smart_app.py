@@ -75,7 +75,7 @@ def main():
             st.info("🚀 性能优化已启用：缓存翻译结果，批量处理短文本")
         
         # 显示设置
-        show_dual_view = st.checkbox("显示翻译统计", value=True)
+        show_dual_view = st.checkbox("显示段落对比", value=True, help="显示原文和译文的段落对比功能")
     
     # 主界面
     col1, col2 = st.columns([2, 1])
@@ -151,7 +151,7 @@ def main():
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                     
-                    # 显示翻译完成信息
+                    # 显示翻译完成信息和段落对比
                     if show_dual_view:
                         st.markdown("---")
                         st.subheader("📊 翻译完成")
@@ -170,6 +170,27 @@ def main():
                         
                         # 显示成功信息
                         st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
+                        
+                        # 段落对比功能
+                        st.markdown("---")
+                        st.subheader("📖 段落对比")
+                        
+                        # 初始化段落对比器
+                        from simple_comparison import SimpleParagraphComparison
+                        comparison = SimpleParagraphComparison()
+                        
+                        # 加载文档进行对比
+                        if comparison.load_documents(tmp_file_path, output_path):
+                            # 显示文档摘要
+                            comparison.display_summary()
+                            
+                            # 显示段落对比
+                            comparison.display_comparison()
+                            
+                            # 显示所有段落概览
+                            comparison.display_all_paragraphs()
+                        else:
+                            st.warning("⚠️ 无法加载文档进行对比")
                         
                         # 显示使用提示
                         st.info("💡 提示：翻译后的文档已保持原有格式，可以直接使用。")
