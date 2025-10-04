@@ -118,140 +118,140 @@ streamlit run smart_app.py
 5. **Access the application**
 Open your browser and visit: http://localhost:8501
 
-## 📖 使用指南
+## 📖 Usage Guide
 
-### 基础使用
+### Basic Usage
 
-1. **设置API密钥**：在侧边栏输入OpenAI API密钥
-2. **选择目标语言**：选择要翻译的目标语言
-3. **上传Word文档**：选择.docx格式的Word文档
-4. **开始翻译**：点击"🚀 开始智能翻译"
-5. **查看结果**：使用双标签页查看原文和译文
+1. **Set API Key**: Enter OpenAI API key in the sidebar
+2. **Select Target Language**: Choose the target language for translation
+3. **Upload Word Document**: Select a .docx format Word document
+4. **Start Translation**: Click "🚀 Start Intelligent Translation"
+5. **View Results**: Use dual tabs to view original and translated text
 
-### 高级功能
+### Advanced Features
 
-#### 专有名词保护
-- **启用专有名词保护**：在侧边栏勾选"启用专有名词保护"
-- **自定义专有名词**：在文本框中输入自定义专有名词，每行一个
-- **内置保护**：自动保护GitHub、OpenAI、Python等技术术语
+#### Proper Noun Protection
+- **Enable Proper Noun Protection**: Check "Enable Proper Noun Protection" in the sidebar
+- **Custom Proper Nouns**: Enter custom proper nouns in the text box, one per line
+- **Built-in Protection**: Automatically protects technical terms like GitHub, OpenAI, Python
 
-#### 性能优化
-- **启用性能优化**：在侧边栏勾选"启用性能优化"
-- **缓存机制**：自动缓存翻译结果，避免重复翻译
-- **批量处理**：优化短文本的批量翻译
+#### Performance Optimization
+- **Enable Performance Optimization**: Check "Enable Performance Optimization" in the sidebar
+- **Caching Mechanism**: Automatically caches translation results to avoid repetitive translation
+- **Batch Processing**: Optimizes batch translation for short texts
 
-## 🔧 技术架构
+## 🔧 Technical Architecture
 
-### 核心技术栈
+### Core Technology Stack
 
-- **前端框架**：Streamlit
-- **文档处理**：python-docx, pypandoc
-- **AI翻译**：OpenAI GPT-3.5-turbo
-- **格式转换**：Pandoc
-- **数据处理**：Python 3.8+
+- **Frontend Framework**: Streamlit
+- **Document Processing**: python-docx, pypandoc
+- **AI Translation**: OpenAI GPT-3.5-turbo
+- **Format Conversion**: Pandoc
+- **Data Processing**: Python 3.8+
 
-### 系统组件
+### System Components
 
 ```
-smart_translator.py          # 核心翻译引擎
-├── StructuralParser         # 结构分层解析器
-├── SemanticTranslator       # 语义增强翻译器
-├── SmartReconstructor       # 格式智能重建器
-└── DualViewEditor           # 双视图编辑器
+smart_translator.py          # Core translation engine
+├── StructuralParser         # Structural layer parser
+├── SemanticTranslator       # Semantic-enhanced translator
+├── SmartReconstructor       # Smart format reconstructor
+└── DualViewEditor           # Dual view editor
 
-smart_app.py                 # 主应用界面
-├── 用户界面组件
-├── 高级功能配置
-├── 重复内容检测
-└── 质量评估显示
+smart_app.py                 # Main application interface
+├── User interface components
+├── Advanced feature configuration
+├── Duplicate content detection
+└── Quality assessment display
 
-simple_display_interface.py # 简单展示界面
-├── 双标签页展示
-├── 翻译统计
-└── 质量评估
+simple_display_interface.py # Simple display interface
+├── Dual tab display
+├── Translation statistics
+└── Quality assessment
 ```
 
-## 🎯 应用场景
+## 🎯 Application Scenarios
 
-### 1. 学术论文翻译
-- **专有名词保护**：确保专业术语不被错误翻译
-- **格式保持**：完美保持论文格式
-- **AI翻译**：使用OpenAI GPT进行高质量翻译
+### 1. Academic Paper Translation
+- **Proper Noun Protection**: Ensures technical terms are not incorrectly translated
+- **Format Preservation**: Perfectly maintains paper formatting
+- **AI Translation**: Uses OpenAI GPT for high-quality translation
 
-### 2. 商务文档翻译
-- **合同翻译**：精确保持法律文档格式
-- **报告翻译**：保持商务报告结构
-- **提案翻译**：维持专业商务风格
+### 2. Business Document Translation
+- **Contract Translation**: Precisely maintains legal document formatting
+- **Report Translation**: Preserves business report structure
+- **Proposal Translation**: Maintains professional business style
 
-### 3. 技术文档翻译
-- **API文档**：保持代码格式和结构
-- **用户手册**：维持操作指南格式
-- **技术规范**：确保技术术语一致
+### 3. Technical Document Translation
+- **API Documentation**: Maintains code formatting and structure
+- **User Manuals**: Preserves operation guide formatting
+- **Technical Specifications**: Ensures consistency of technical terms
 
-## ⚠️ 重要说明
+## ⚠️ Important Notice
 
-**本项目仅为满足教授一次性翻译任务而开发，当生成结果效果不错时任务就结束了。由于缺乏充分的数据测试，使用请谨慎！**
+**This project was developed solely to fulfill a professor's one-time translation task. The task ended when satisfactory results were achieved. Due to limited data testing, please use with caution!**
 
-- 🎯 **开发目的**：解决教授翻译任务，避免付费翻译工具
-- ⚠️ **测试状态**：缺乏充分测试，可能存在未知问题
-- 🔧 **使用建议**：建议先在小文档上测试，确认效果后再处理重要文档
-- 📝 **免责声明**：使用本工具产生的任何问题，开发者不承担责任
+- 🎯 **Development Purpose**: Solve professor's translation task, avoid paid translation tools
+- ⚠️ **Testing Status**: Limited testing, potential unknown issues
+- 🔧 **Usage Recommendation**: Test with small documents first, then process important documents after confirming effectiveness
+- 📝 **Disclaimer**: Developer assumes no responsibility for any issues arising from using this tool
 
-## 🔍 问题解决
+## 🔍 Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **Q: 翻译后格式丢失怎么办？**
-   A: 系统会自动进行格式智能重建，保持原有格式。
+1. **Q: What if formatting is lost after translation?**
+   A: The system automatically performs intelligent format reconstruction to maintain original formatting.
 
-2. **Q: 专业术语翻译不一致？**
-   A: 使用专有名词保护功能，在侧边栏添加自定义专有名词。
+2. **Q: Inconsistent translation of technical terms?**
+   A: Use proper noun protection feature, add custom proper nouns in the sidebar.
 
-3. **Q: 翻译速度慢？**
-   A: 启用性能优化功能，系统会自动缓存和批量处理。
+3. **Q: Slow translation speed?**
+   A: Enable performance optimization feature, the system will automatically cache and batch process.
 
-4. **Q: 表格内容重复显示？**
-   A: 系统已优化表格处理，自动去重避免重复。
+4. **Q: Duplicate table content display?**
+   A: The system has optimized table processing, automatically deduplicating to avoid repetition.
 
-### 故障排除
+### Troubleshooting Steps
 
-- **API密钥错误**：检查OpenAI API密钥是否正确
-- **文档格式问题**：确保使用.docx格式
-- **内存不足**：大文档建议分段处理
-- **网络问题**：检查网络连接和API访问
+- **API Key Error**: Check if OpenAI API key is correct
+- **Document Format Issue**: Ensure using .docx format
+- **Insufficient Memory**: For large documents, consider processing in segments
+- **Network Issues**: Check network connection and API access
 
-## 🤝 贡献指南
+## 🤝 Contributing
 
-我们欢迎社区贡献！请遵循以下步骤：
+We welcome community contributions! Please follow these steps:
 
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📄 许可证
+## 📄 License
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 致谢
+## 🙏 Acknowledgments
 
-- 感谢 [document-translation](https://github.com/kukas/document-translation) 的启发
-- 感谢 [DocuTranslate](https://github.com/xunbu/docutranslate) 的参考
-- 感谢 [TransDoc](https://github.com/abner-wong/transdoc) 的思路
-- 感谢 OpenAI 提供的强大AI翻译能力
-- 感谢 Streamlit 提供的优秀Web框架
-- 感谢所有贡献者和用户的支持
+- Thanks to [document-translation](https://github.com/kukas/document-translation) for inspiration
+- Thanks to [DocuTranslate](https://github.com/xunbu/docutranslate) for reference
+- Thanks to [TransDoc](https://github.com/abner-wong/transdoc) for ideas
+- Thanks to OpenAI for providing powerful AI translation capabilities
+- Thanks to Streamlit for providing an excellent web framework
+- Thanks to all contributors and users for their support
 
-## 📞 联系我们
+## 📞 Contact Us
 
-- **项目主页**：https://github.com/Rain-Shi/Free_translate
-- **问题反馈**：https://github.com/Rain-Shi/Free_translate/issues
+- **Project Homepage**: https://github.com/Rain-Shi/Free_translate
+- **Issue Reports**: https://github.com/Rain-Shi/Free_translate/issues
 
 ---
 
-**🎉 感谢使用！让我们一起推动文档翻译技术的进步！**
+**🎉 Thank you for using! Let's advance document translation technology together!**
 
-## ⭐ 如果这个项目对您有帮助，请给我们一个Star！
+## ⭐ If this project helps you, please give us a Star!
 
-**毕竟，我们也不想给那些收费翻译工具送钱！** 😄
+**After all, we don't want to give money to those paid translation tools either!** 😄
