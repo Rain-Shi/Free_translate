@@ -245,19 +245,23 @@ def main():
                         else:
                             st.warning("⚠️ 无法加载文档，回退到传统双视图编辑器")
                             
-                            # 回退到传统编辑器
-                            parser = StructuralParser()
-                            original_parsed = parser.parse_document(tmp_file_path)
-                            translated_parsed = parser.parse_document(output_path)
-                            
-                            if original_parsed and translated_parsed:
-                                editor = DualViewEditor()
-                                editor.display_dual_view(
-                                    original_parsed['content_layer'],
-                                    translated_parsed['content_layer']
-                                )
-                            else:
-                                st.warning("⚠️ 无法解析文档内容")
+                        # 回退到简化解析器
+                        st.info("🔄 尝试使用简化解析器...")
+                        from simple_document_parser import SimpleDocumentParser
+                        simple_parser = SimpleDocumentParser()
+                        
+                        original_parsed = simple_parser.parse_document(tmp_file_path)
+                        translated_parsed = simple_parser.parse_document(output_path)
+                        
+                        if original_parsed and translated_parsed:
+                            st.success("✅ 简化解析器成功！")
+                            editor = DualViewEditor()
+                            editor.display_dual_view(
+                                original_parsed['content_layer'],
+                                translated_parsed['content_layer']
+                            )
+                        else:
+                            st.error("❌ 所有解析器都失败了，请检查文档格式")
                     
                     # 格式纠错报告
                     if auto_format_correction:

@@ -27,6 +27,7 @@ class StructuralParser:
     def parse_document(self, doc_path: str) -> Dict[str, Any]:
         """解析Word文档，提取三层信息"""
         try:
+            # 使用更安全的文档加载方式
             doc = Document(doc_path)
             
             # 初始化解析结果
@@ -45,68 +46,89 @@ class StructuralParser:
             
             # 解析段落
             for i, paragraph in enumerate(doc.paragraphs):
-                if paragraph.text.strip():
-                    # 内容层：纯文本
-                    content_info = {
-                        'id': f'para_{i}',
-                        'text': paragraph.text.strip(),
-                        'type': 'paragraph'
-                    }
-                    result['content_layer'].append(content_info)
-                    
-                    # 格式层：样式信息
-                    format_info = {
-                        'id': f'para_{i}',
-                        'style': paragraph.style.name,
-                        'alignment': str(paragraph.alignment),
-                        'runs': []
-                    }
-                    
-                    for run in paragraph.runs:
-                        run_info = {
-                            'text': run.text,
-                            'bold': run.bold,
-                            'italic': run.italic,
-                            'underline': run.underline,
-                            'font_name': run.font.name,
-                            'font_size': run.font.size.pt if run.font.size else None
+                try:
+                    if paragraph.text.strip():
+                        # 内容层：纯文本
+                        content_info = {
+                            'id': f'para_{i}',
+                            'text': paragraph.text.strip(),
+                            'type': 'paragraph'
                         }
-                        format_info['runs'].append(run_info)
-                    
-                    result['format_layer'].append(format_info)
-                    
-                    # 布局层：结构信息
-                    page_number = self._detect_page_number(paragraph, i)
-                    layout_info = {
-                        'id': f'para_{i}',
-                        'is_heading': paragraph.style.name.startswith('Heading'),
-                        'heading_level': self._get_heading_level(paragraph.style.name),
-                        'page_break_before': paragraph._element.getparent().tag.endswith('pPr'),
-                        'page_number': page_number
-                    }
-                    result['layout_layer'].append(layout_info)
-                    
-                    result['metadata']['total_paragraphs'] += 1
+                        result['content_layer'].append(content_info)
+                        
+                        # 格式层：样式信息
+                        format_info = {
+                            'id': f'para_{i}',
+                            'style': getattr(paragraph.style, 'name', 'Normal'),
+                            'alignment': str(paragraph.alignment) if paragraph.alignment else 'None',
+                            'runs': []
+                        }
+                        
+                        # 安全地处理runs
+                        try:
+                            for run in paragraph.runs:
+                                run_info = {
+                                    'text': run.text,
+                                    'bold': run.bold,
+                                    'italic': run.italic,
+                                    'underline': run.underline,
+                                    'font_name': run.font.name if run.font.name else 'Calibri',
+                                    'font_size': run.font.size.pt if run.font.size else 11
+                                }
+                                format_info['runs'].append(run_info)
+                        except Exception as e:
+                            # 如果run解析失败，使用默认格式
+                            format_info['runs'] = [{'text': paragraph.text, 'bold': False, 'italic': False, 'underline': False, 'font_name': 'Calibri', 'font_size': 11}]
+                        
+                        result['format_layer'].append(format_info)
+                        
+                        # 布局层：结构信息
+                        page_number = self._detect_page_number(paragraph, i)
+                        layout_info = {
+                            'id': f'para_{i}',
+                            'is_heading': paragraph.style.name.startswith('Heading') if hasattr(paragraph.style, 'name') else False,
+                            'heading_level': self._get_heading_level(paragraph.style.name) if hasattr(paragraph.style, 'name') else 0,
+                            'page_break_before': False,  # 简化处理
+                            'page_number': page_number
+                        }
+                        result['layout_layer'].append(layout_info)
+                        
+                        result['metadata']['total_paragraphs'] += 1
+                except Exception as e:
+                    # 如果单个段落解析失败，跳过该段落
+                    print(f"段落 {i} 解析失败: {str(e)}")
+                    continue
             
             # 解析表格
-            for i, table in enumerate(doc.tables):
-                table_content = self._parse_table(table, i)
-                result['content_layer'].extend(table_content['content'])
-                result['format_layer'].extend(table_content['format'])
-                result['layout_layer'].extend(table_content['layout'])
-                result['metadata']['total_tables'] += 1
+            try:
+                for i, table in enumerate(doc.tables):
+                    try:
+                        table_content = self._parse_table(table, i)
+                        result['content_layer'].extend(table_content['content'])
+                        result['format_layer'].extend(table_content['format'])
+                        result['layout_layer'].extend(table_content['layout'])
+                        result['metadata']['total_tables'] += 1
+                    except Exception as e:
+                        print(f"表格 {i} 解析失败: {str(e)}")
+                        continue
+            except Exception as e:
+                print(f"表格解析失败: {str(e)}")
             
             # 解析图片
-            for i, rel in enumerate(doc.part.rels.values()):
-                if "image" in rel.target_ref:
-                    image_info = {
-                        'id': f'img_{i}',
-                        'type': 'image',
-                        'target': rel.target_ref,
-                        'content_type': rel.target_content_type
-                    }
-                    result['content_layer'].append(image_info)
-                    result['metadata']['total_images'] += 1
+            try:
+                for i, rel in enumerate(doc.part.rels.values()):
+                    if "image" in rel.target_ref:
+                        image_info = {
+                            'id': f'img_{i}',
+                            'type': 'image',
+                            'target': rel.target_ref,
+                            'content_type': getattr(rel, 'target_content_type', 'image/png')
+                        }
+                        result['content_layer'].append(image_info)
+                        result['metadata']['total_images'] += 1
+            except Exception as e:
+                # 如果图片解析失败，继续处理其他内容
+                print(f"图片解析警告: {str(e)}")
             
             return result
             
