@@ -187,9 +187,6 @@ def main():
                             # 显示左右编辑界面
                             edit_interface.display_dual_edit_interface()
                             
-                            # 显示所有段落编辑
-                            edit_interface.display_all_paragraphs_edit()
-                            
                             # 最终输出
                             st.markdown("---")
                             st.subheader("📤 最终输出")

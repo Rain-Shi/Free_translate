@@ -57,27 +57,18 @@ class DualEditInterface:
         with col3:
             st.metric("可编辑段落数", len(self.edited_paragraphs))
         
-        # 段落选择器
+        # 一次性显示所有段落的左右编辑界面
         max_paragraphs = min(len(self.original_paragraphs), len(self.translated_paragraphs))
         
         if max_paragraphs > 0:
-            selected_paragraph = st.selectbox(
-                "选择要编辑的段落",
-                options=list(range(1, max_paragraphs + 1)),
-                format_func=lambda x: f"段落 {x}",
-                key="edit_paragraph_selector"
-            )
-            
-            if selected_paragraph:
-                para_index = selected_paragraph - 1
-                
-                # 显示左右编辑界面
-                self._display_paragraph_edit_interface(para_index)
+            # 显示所有段落的左右编辑界面
+            for i in range(max_paragraphs):
+                self._display_paragraph_edit_interface(i)
     
     def _display_paragraph_edit_interface(self, para_index: int):
         """显示单个段落的左右编辑界面"""
         st.markdown("---")
-        st.markdown("### ✏️ 段落编辑")
+        st.markdown(f"### ✏️ 段落 {para_index + 1}")
         
         # 创建两列布局
         col1, col2 = st.columns(2)
@@ -88,14 +79,13 @@ class DualEditInterface:
             st.text_area(
                 "原文内容",
                 value=original_text,
-                height=200,
+                height=150,
                 key=f"original_display_{para_index}",
                 disabled=True
             )
             
             # 原文统计
             st.markdown(f"**字数**: {len(original_text)}")
-            st.markdown(f"**字符数**: {len(original_text.replace(' ', ''))}")
         
         with col2:
             st.markdown("**🌐 译文 (可编辑)**")
@@ -107,7 +97,7 @@ class DualEditInterface:
             edited_text = st.text_area(
                 "译文内容 (可编辑)",
                 value=st.session_state[edit_key],
-                height=200,
+                height=150,
                 key=f"translated_edit_{para_index}",
                 help="您可以在这里编辑译文内容"
             )
@@ -119,7 +109,6 @@ class DualEditInterface:
             
             # 译文统计
             st.markdown(f"**字数**: {len(edited_text)}")
-            st.markdown(f"**字符数**: {len(edited_text.replace(' ', ''))}")
         
         # 对比统计
         if original_text and edited_text:
@@ -154,16 +143,9 @@ class DualEditInterface:
     
     def _display_edit_actions(self, para_index: int):
         """显示编辑操作按钮"""
-        st.markdown("---")
-        st.markdown("### 🔧 编辑操作")
-        
-        col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            if st.button("💾 保存修改", key=f"save_{para_index}"):
-                st.success("✅ 段落修改已保存")
-        
-        with col2:
             if st.button("🔄 重置为原文", key=f"reset_{para_index}"):
                 original_text = self.original_paragraphs[para_index] if para_index < len(self.original_paragraphs) else ""
                 st.session_state[f"edited_text_{para_index}"] = original_text
@@ -171,7 +153,7 @@ class DualEditInterface:
                 st.success("✅ 已重置为原文")
                 st.rerun()
         
-        with col3:
+        with col2:
             if st.button("🔄 重置为译文", key=f"reset_trans_{para_index}"):
                 translated_text = self.translated_paragraphs[para_index] if para_index < len(self.translated_paragraphs) else ""
                 st.session_state[f"edited_text_{para_index}"] = translated_text
@@ -179,7 +161,7 @@ class DualEditInterface:
                 st.success("✅ 已重置为译文")
                 st.rerun()
         
-        with col4:
+        with col3:
             if st.button("📋 复制原文", key=f"copy_{para_index}"):
                 st.session_state[f"edited_text_{para_index}"] = self.original_paragraphs[para_index]
                 self.edited_paragraphs[para_index] = self.original_paragraphs[para_index]
