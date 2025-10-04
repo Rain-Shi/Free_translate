@@ -107,24 +107,6 @@ def main():
         translator_system = SmartDocumentTranslator()
         translator_system.set_translator(api_key)
         
-        # 设置术语锁定
-        if use_terminology and terminology_text:
-            try:
-                terminology_dict = json.loads(terminology_text)
-                translator_system.translator.set_terminology(terminology_dict)
-                st.success("✅ 术语锁定已设置")
-            except json.JSONDecodeError:
-                st.error("❌ 术语对照表格式错误，请使用正确的JSON格式")
-        
-        # 设置风格模仿
-        if use_style_imitation and style_examples:
-            try:
-                style_dict = json.loads(style_examples)
-                translator_system.translator.set_style_examples(style_dict)
-                st.success("✅ 风格模仿已设置")
-            except json.JSONDecodeError:
-                st.error("❌ 风格示例格式错误，请使用正确的JSON格式")
-        
         # 设置专有名词保护
         if use_proper_noun_protection:
             if custom_proper_nouns:
