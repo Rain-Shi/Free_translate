@@ -171,21 +171,21 @@ def main():
                         # 显示成功信息
                         st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
                         
-                        # 持久化编辑界面
+                        # 无重新运行编辑界面
                         st.markdown("---")
-                        st.subheader("📝 持久化编辑界面")
+                        st.subheader("📝 无重新运行编辑界面")
                         
-                        # 初始化持久化编辑界面
-                        from persistent_edit_interface import PersistentEditInterface
-                        edit_interface = PersistentEditInterface()
+                        # 初始化无重新运行编辑界面
+                        from no_rerun_edit_interface import NoRerunEditInterface
+                        edit_interface = NoRerunEditInterface()
                         
                         # 加载文档进行编辑
                         if edit_interface.load_documents(tmp_file_path, output_path):
                             # 显示编辑摘要
                             edit_interface.display_edit_summary()
                             
-                            # 显示持久化编辑界面
-                            edit_interface.display_persistent_edit_interface()
+                            # 显示无重新运行编辑界面
+                            edit_interface.display_no_rerun_edit_interface()
                             
                             # 最终输出
                             st.markdown("---")
