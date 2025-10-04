@@ -37,14 +37,14 @@ def main():
         # Target language selection
         st.subheader("🌐 Translation Settings")
         target_languages = {
-            '中文': 'Chinese',
-            '英文': 'English',
-            '日文': 'Japanese',
-            '韩文': 'Korean',
-            '法文': 'French',
-            '德文': 'German',
-            '西班牙文': 'Spanish',
-            '俄文': 'Russian'
+            'Chinese': 'Chinese',
+            'English': 'English',
+            'Japanese': 'Japanese',
+            'Korean': 'Korean',
+            'French': 'French',
+            'German': 'German',
+            'Spanish': 'Spanish',
+            'Russian': 'Russian'
         }
         
         target_lang = st.selectbox(
