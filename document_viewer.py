@@ -29,6 +29,10 @@ class DocumentViewer:
             # 解析文档结构
             self._parse_document_structure()
             
+            # 初始化页面状态
+            if 'current_page' not in st.session_state:
+                st.session_state.current_page = 1
+            
             st.success("✅ 文档加载成功！")
             return True
         except Exception as e:
@@ -86,20 +90,28 @@ class DocumentViewer:
         """显示页面导航"""
         st.markdown("---")
         
+        # 使用session_state来保持页面状态
+        if 'current_page' not in st.session_state:
+            st.session_state.current_page = 1
+        
+        self.current_page = st.session_state.current_page
+        
         col1, col2, col3, col4 = st.columns([1, 2, 1, 1])
         
         with col1:
-            if st.button("⬅️ 上一页", disabled=(self.current_page <= 1)):
-                self.current_page -= 1
-                st.rerun()
+            if st.button("⬅️ 上一页", disabled=(self.current_page <= 1), key="prev_page"):
+                if self.current_page > 1:
+                    st.session_state.current_page = self.current_page - 1
+                    st.rerun()
         
         with col2:
             st.markdown(f"**第 {self.current_page} 页 / 共 {self.total_pages} 页**")
         
         with col3:
-            if st.button("下一页 ➡️", disabled=(self.current_page >= self.total_pages)):
-                self.current_page += 1
-                st.rerun()
+            if st.button("下一页 ➡️", disabled=(self.current_page >= self.total_pages), key="next_page"):
+                if self.current_page < self.total_pages:
+                    st.session_state.current_page = self.current_page + 1
+                    st.rerun()
         
         with col4:
             # 页面跳转
@@ -111,7 +123,7 @@ class DocumentViewer:
                 key="page_jumper"
             )
             if target_page != self.current_page:
-                self.current_page = target_page
+                st.session_state.current_page = target_page
                 st.rerun()
     
     def _display_document_content(self):
@@ -137,7 +149,11 @@ class DocumentViewer:
     def _display_paragraphs(self, paragraphs: List[Dict], version: str):
         """显示段落列表"""
         for i, para in enumerate(paragraphs):
-            text = para['original_text'] if version == "original" else para['translated_text']
+            # 修复：正确获取对应版本的文本
+            if version == "original":
+                text = para['original_text']
+            else:  # translated
+                text = para['translated_text']
             
             # 段落样式
             if para['is_heading']:
@@ -146,7 +162,7 @@ class DocumentViewer:
                 # 可点击的段落
                 if st.button(
                     f"📄 段落 {para['index']+1}",
-                    key=f"para_{version}_{para['index']}",
+                    key=f"para_{version}_{para['index']}_{self.current_page}",
                     help=f"点击查看对比 (字数: {para['word_count']})"
                 ):
                     # 显示段落对比
@@ -172,7 +188,7 @@ class DocumentViewer:
                 "原文内容",
                 value=paragraph['original_text'],
                 height=150,
-                key=f"orig_detail_{paragraph['index']}"
+                key=f"orig_detail_{paragraph['index']}_{self.current_page}"
             )
         
         with col2:
@@ -181,7 +197,7 @@ class DocumentViewer:
                 "译文内容", 
                 value=paragraph['translated_text'],
                 height=150,
-                key=f"trans_detail_{paragraph['index']}"
+                key=f"trans_detail_{paragraph['index']}_{self.current_page}"
             )
         
         # 统计信息
@@ -214,15 +230,15 @@ class DocumentViewer:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            if st.button("📝 编辑译文", key=f"edit_{paragraph['index']}"):
+            if st.button("📝 编辑译文", key=f"edit_{paragraph['index']}_{self.current_page}"):
                 st.session_state[f"editing_{paragraph['index']}"] = True
         
         with col2:
-            if st.button("🔄 重新翻译", key=f"retranslate_{paragraph['index']}"):
+            if st.button("🔄 重新翻译", key=f"retranslate_{paragraph['index']}_{self.current_page}"):
                 st.info("🔄 重新翻译功能开发中...")
         
         with col3:
-            if st.button("✅ 确认", key=f"confirm_{paragraph['index']}"):
+            if st.button("✅ 确认", key=f"confirm_{paragraph['index']}_{self.current_page}"):
                 st.success("✅ 段落已确认")
     
     def _display_paragraph_comparison(self):
