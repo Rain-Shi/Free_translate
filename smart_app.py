@@ -191,6 +191,33 @@ def main():
                             st.markdown("---")
                             st.subheader("📤 最终输出")
                             
+                            # 全局操作按钮
+                            col1, col2, col3 = st.columns(3)
+                            
+                            with col1:
+                                if st.button("🔄 重置所有为原文"):
+                                    for i in range(len(edit_interface.original_paragraphs)):
+                                        st.session_state[f"edited_text_{i}"] = edit_interface.original_paragraphs[i]
+                                        edit_interface.edited_paragraphs[i] = edit_interface.original_paragraphs[i]
+                                    st.success("✅ 已重置所有段落为原文")
+                                    st.rerun()
+                            
+                            with col2:
+                                if st.button("🔄 重置所有为译文"):
+                                    for i in range(len(edit_interface.translated_paragraphs)):
+                                        st.session_state[f"edited_text_{i}"] = edit_interface.translated_paragraphs[i]
+                                        edit_interface.edited_paragraphs[i] = edit_interface.translated_paragraphs[i]
+                                    st.success("✅ 已重置所有段落为译文")
+                                    st.rerun()
+                            
+                            with col3:
+                                if st.button("📋 复制所有原文"):
+                                    for i in range(len(edit_interface.original_paragraphs)):
+                                        st.session_state[f"edited_text_{i}"] = edit_interface.original_paragraphs[i]
+                                        edit_interface.edited_paragraphs[i] = edit_interface.original_paragraphs[i]
+                                    st.success("✅ 已复制所有原文")
+                                    st.rerun()
+                            
                             if st.button("📄 生成最终文档", type="primary"):
                                 with st.spinner("正在生成最终文档..."):
                                     final_output_path = tempfile.mktemp(suffix='.docx')

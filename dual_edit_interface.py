@@ -113,60 +113,14 @@ class DualEditInterface:
         # 对比统计
         if original_text and edited_text:
             self._display_edit_comparison_stats(original_text, edited_text)
-        
-        # 编辑操作按钮
-        self._display_edit_actions(para_index)
     
     def _display_edit_comparison_stats(self, original_text: str, edited_text: str):
         """显示编辑对比统计"""
-        st.markdown("---")
-        st.markdown("### 📊 编辑对比统计")
-        
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            length_ratio = len(edited_text) / len(original_text) if original_text else 1
-            st.metric("长度比例", f"{length_ratio:.2f}")
-        
-        with col2:
-            word_count_orig = len(original_text.split())
-            word_count_edit = len(edited_text.split())
-            st.metric("原文词数", word_count_orig)
-        
-        with col3:
-            st.metric("编辑后词数", word_count_edit)
-        
-        with col4:
-            if word_count_orig > 0:
-                word_ratio = word_count_edit / word_count_orig
-                st.metric("词数比例", f"{word_ratio:.2f}")
+        # 简化统计，只显示基本比例
+        length_ratio = len(edited_text) / len(original_text) if original_text else 1
+        if abs(length_ratio - 1.0) > 0.1:  # 只有比例差异较大时才显示
+            st.markdown(f"**长度比例**: {length_ratio:.2f}")
     
-    def _display_edit_actions(self, para_index: int):
-        """显示编辑操作按钮"""
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("🔄 重置为原文", key=f"reset_{para_index}"):
-                original_text = self.original_paragraphs[para_index] if para_index < len(self.original_paragraphs) else ""
-                st.session_state[f"edited_text_{para_index}"] = original_text
-                self.edited_paragraphs[para_index] = original_text
-                st.success("✅ 已重置为原文")
-                st.rerun()
-        
-        with col2:
-            if st.button("🔄 重置为译文", key=f"reset_trans_{para_index}"):
-                translated_text = self.translated_paragraphs[para_index] if para_index < len(self.translated_paragraphs) else ""
-                st.session_state[f"edited_text_{para_index}"] = translated_text
-                self.edited_paragraphs[para_index] = translated_text
-                st.success("✅ 已重置为译文")
-                st.rerun()
-        
-        with col3:
-            if st.button("📋 复制原文", key=f"copy_{para_index}"):
-                st.session_state[f"edited_text_{para_index}"] = self.original_paragraphs[para_index]
-                self.edited_paragraphs[para_index] = self.original_paragraphs[para_index]
-                st.success("✅ 已复制原文")
-                st.rerun()
     
     def display_all_paragraphs_edit(self):
         """显示所有段落的编辑界面"""
