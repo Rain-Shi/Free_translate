@@ -1,6 +1,6 @@
-# 🤖 智能文档翻译与格式保真系统
+# 🤖 Intelligent Document Translation and Format Fidelity System
 
-> 一个被收费翻译逼出来的开源项目 - 基于创新的混合策略：**结构分层解析 + 语义增强翻译 + 格式智能重建**
+> An open-source project born out of frustration with paid translation services - Based on innovative hybrid strategy: **Structural Layer Extraction + Semantic-Aware Translation + Smart Format Reconstruction**
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io)
@@ -8,90 +8,90 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/Rain-Shi/Free_translate.svg)](https://github.com/Rain-Shi/Free_translate/stargazers)
 
-## 📖 项目起源
+## 📖 Project Origin
 
-这个故事要从一个教授的翻译任务说起...
+This story begins with a professor's translation task...
 
-当时需要翻译大量学术文档，试了一圈发现：
-- **百度翻译**：要钱 💰
-- **DeepL**：要钱 💰  
-- **有道翻译**：要钱 💰
+When I needed to translate a large number of academic documents, I tried various services and found:
+- **Baidu Translate**: Requires payment 💰
+- **DeepL**: Requires payment 💰  
+- **Youdao Translate**: Requires payment 💰
 
-**我气不过就是不想给！** 😤
+**I was so frustrated that I didn't want to pay!** 😤
 
-于是决定手搓一个文档翻译工具。参考了GitHub上的优秀案例：
+So I decided to build my own document translation tool. I referenced excellent cases on GitHub:
 - [document-translation](https://github.com/kukas/document-translation) 
 - [DocuTranslate](https://github.com/xunbu/docutranslate)
 - [TransDoc](https://github.com/abner-wong/transdoc)
 
-但是实在太懒了，抄都不想抄，想搞点自己的名堂 🤔
+But I was too lazy to copy, so I wanted to create something unique 🤔
 
-## 🚀 核心功能
+## 🚀 Core Features
 
-### 1. 智能文档翻译
-- **OpenAI GPT-3.5-turbo**：使用先进的AI模型进行高质量翻译（已实现）
-- **多语言支持**：支持多种目标语言翻译（已实现）
-- **上下文理解**：保持翻译的连贯性和准确性（已实现）
+### 1. Intelligent Document Translation
+- **OpenAI GPT-3.5-turbo**: Uses advanced AI models for high-quality translation (Implemented)
+- **Multi-language Support**: Supports translation to multiple target languages (Implemented)
+- **Context Understanding**: Maintains translation coherence and accuracy (Implemented)
 
-### 2. 格式保真系统
-- **结构分层解析**：将Word文档拆分为内容层、格式层、布局层（已实现）
-- **格式智能重建**：翻译后重建文档，保持原有格式（已实现）
-- **字体大小和颜色保持**：保持原文档的字体大小和颜色（已实现）
+### 2. Format Fidelity System
+- **Structural Layer Extraction**: Deconstructs Word documents into content, format, and layout layers (Implemented)
+- **Smart Format Reconstruction**: Reconstructs documents after translation while preserving original format (Implemented)
+- **Font Size and Color Preservation**: Maintains original document's font size and color (Implemented)
 
-### 3. 专有名词保护
-- **内置保护**：自动保护GitHub、OpenAI、Python等技术术语（已实现）
-- **自定义保护**：支持用户添加自定义专有名词（已实现）
-- **智能识别**：避免专有名词被错误翻译（已实现）
+### 3. Proper Noun Protection
+- **Built-in Protection**: Automatically protects technical terms like GitHub, OpenAI, Python (Implemented)
+- **Custom Protection**: Supports user-added custom proper nouns (Implemented)
+- **Intelligent Recognition**: Prevents incorrect translation of proper nouns (Implemented)
 
-### 4. 性能优化
-- **缓存机制**：缓存翻译结果，避免重复翻译（已实现）
-- **批量处理**：优化短文本的批量翻译（已实现）
-- **重复内容检测**：自动检测和避免重复翻译（已实现）
+### 4. Performance Optimization
+- **Caching Mechanism**: Caches translation results to avoid repetitive translation (Implemented)
+- **Batch Processing**: Optimizes batch translation for short texts (Implemented)
+- **Duplicate Content Detection**: Automatically detects and avoids repetitive translation (Implemented)
 
-### 5. 结果展示
-- **双标签页展示**：分别展示原文和译文（已实现）
-- **翻译统计**：显示字数统计、长度比例等（已实现）
-- **基础质量评估**：基于长度比例的基础质量评估（已实现）
-- **文档下载**：支持下载翻译后的Word文档（已实现）
-- **格式保持**：保持原文档的字体大小和颜色（已实现）
+### 5. Result Display
+- **Dual Tab Display**: Separately displays original and translated text (Implemented)
+- **Translation Statistics**: Shows word count, length ratio, etc. (Implemented)
+- **Basic Quality Assessment**: Provides basic quality assessment based on length ratio (Implemented)
+- **Document Download**: Supports downloading translated Word documents (Implemented)
+- **Format Preservation**: Maintains original document's font size and color (Implemented)
 
-## 🎯 核心优势
+## 🎯 Core Advantages
 
-### 相比传统翻译工具
+### Compared to Traditional Translation Tools
 
-| 功能 | 传统方法 | 本系统 | 优势 |
-|------|---------|--------|------|
-| 格式保持 | 容易丢失 | 智能保持 | 结构分层解析 |
-| 专有名词 | 无法控制 | 智能保护 | 专有名词保护 |
-| 翻译质量 | 基础翻译 | AI增强 | OpenAI GPT |
-| 用户体验 | 单向处理 | 结果展示 | 双标签页展示 |
-| 费用 | 按量收费 | 完全免费 | 开源免费 |
+| Feature | Traditional Methods | Our System | Advantage |
+|---------|-------------------|------------|-----------|
+| Format Preservation | Easy to lose | Smart preservation | Structural layer extraction |
+| Proper Nouns | No control | Smart protection | Proper noun protection |
+| Translation Quality | Basic translation | AI-enhanced | OpenAI GPT |
+| User Experience | One-way processing | Result display | Dual tab display |
+| Cost | Pay-per-use | Completely free | Open source free |
 
-### 相比现有开源方案
+### Compared to Existing Open Source Solutions
 
-- **document-translation**: 侧重批量处理，保留标记，但缺乏 AI 语境优化
-- **DocuTranslate**: 保留格式较好，但 run 级写回容易导致翻译后文本分布不均衡
-- **TransDoc**: 解压 XML 处理方式能保留格式，但开发复杂度高，且翻译上下文有限
+- **document-translation**: Focuses on batch processing, preserves markup, but lacks AI context optimization
+- **DocuTranslate**: Good format preservation, but run-level writing back can cause uneven text distribution after translation
+- **TransDoc**: XML extraction approach preserves format, but high development complexity and limited translation context
 
-**我们的方案**：结合各家优势，用结构分层解析 + AI语义翻译 + 格式智能重建，既保持格式又提升质量。
+**Our Solution**: Combines the advantages of each approach, using structural layer extraction + AI semantic translation + smart format reconstruction, maintaining format while improving quality.
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 环境要求
+### Requirements
 
 - Python 3.8+
-- OpenAI API密钥（或者用其他LLM）
-- 8GB+ RAM (推荐)
+- OpenAI API key (or other LLM)
+- 8GB+ RAM (recommended)
 
-### 安装步骤
+### Installation Steps
 
-1. **克隆项目**
+1. **Clone the project**
 ```bash
 git clone https://github.com/Rain-Shi/Free_translate.git
 cd Free_translate
 ```
 
-2. **创建虚拟环境**
+2. **Create virtual environment**
 ```bash
 python -m venv venv
 # Windows
@@ -100,23 +100,23 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-3. **安装依赖**
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **启动应用**
+4. **Start the application**
 ```bash
 # Windows
 start_app.bat
 # Linux/Mac
 ./start_app.sh
-# 或直接运行
+# Or run directly
 streamlit run smart_app.py
 ```
 
-5. **访问应用**
-打开浏览器访问：http://localhost:8501
+5. **Access the application**
+Open your browser and visit: http://localhost:8501
 
 ## 📖 使用指南
 

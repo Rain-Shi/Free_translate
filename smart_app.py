@@ -1,6 +1,6 @@
 """
-智能文档翻译与格式保真系统 - 主应用
-基于创新的混合策略：结构分层解析 + 语义增强翻译 + 格式智能重建
+Intelligent Document Translation and Format Fidelity System - Main Application
+Based on innovative hybrid strategy: Structural Layer Extraction + Semantic-Aware Translation + Smart Format Reconstruction
 """
 
 import streamlit as st
@@ -11,31 +11,31 @@ import json
 
 def main():
     st.set_page_config(
-        page_title="智能文档翻译与格式保真系统",
+        page_title="Intelligent Document Translation and Format Fidelity System",
         page_icon="🤖",
         layout="wide"
     )
     
-    st.title("🤖 智能文档翻译与格式保真系统")
+    st.title("🤖 Intelligent Document Translation and Format Fidelity System")
     st.markdown("---")
     
-    # 侧边栏配置
+    # Sidebar configuration
     with st.sidebar:
-        st.header("⚙️ 系统配置")
+        st.header("⚙️ System Configuration")
         
-        # API密钥设置
+        # API key settings
         api_key = st.text_input(
-            "OpenAI API密钥",
+            "OpenAI API Key",
             type="password",
-            help="请输入您的OpenAI API密钥"
+            help="Please enter your OpenAI API key"
         )
         
         if not api_key:
-            st.warning("⚠️ 请先设置OpenAI API密钥")
+            st.warning("⚠️ Please set OpenAI API key first")
             st.stop()
         
-        # 目标语言选择
-        st.subheader("🌐 翻译设置")
+        # Target language selection
+        st.subheader("🌐 Translation Settings")
         target_languages = {
             '中文': 'Chinese',
             '英文': 'English',
@@ -48,182 +48,182 @@ def main():
         }
         
         target_lang = st.selectbox(
-            "选择目标语言",
+            "Select Target Language",
             options=list(target_languages.keys()),
             index=0
         )
         target_lang_code = target_languages[target_lang]
         
-        # 高级功能设置
-        st.subheader("🔧 高级功能")
+        # Advanced features settings
+        st.subheader("🔧 Advanced Features")
         
-        # 专有名词保护
-        use_proper_noun_protection = st.checkbox("启用专有名词保护", value=True)
+        # Proper noun protection
+        use_proper_noun_protection = st.checkbox("Enable Proper Noun Protection", value=True)
         
         if use_proper_noun_protection:
             custom_proper_nouns = st.text_area(
-                "自定义专有名词 (每行一个)",
+                "Custom Proper Nouns (one per line)",
                 value="GitHub\nOpenAI\nStreamlit\nPython\nJavaScript",
                 height=100,
-                help="输入需要保护的专有名词，每行一个。系统已内置常见技术专有名词。"
+                help="Enter proper nouns to protect, one per line. The system has built-in common technical proper nouns."
             )
-            st.info("ℹ️ 使用内置专有名词保护（GitHub、OpenAI、Python等）")
+            st.info("ℹ️ Using built-in proper noun protection (GitHub, OpenAI, Python, etc.)")
         
-        # 性能优化
-        use_performance_optimization = st.checkbox("启用性能优化", value=True, help="使用缓存和批量处理提升翻译速度")
+        # Performance optimization
+        use_performance_optimization = st.checkbox("Enable Performance Optimization", value=True, help="Use caching and batch processing to improve translation speed")
         if use_performance_optimization:
-            st.info("🚀 性能优化已启用：缓存翻译结果，批量处理短文本")
+            st.info("🚀 Performance optimization enabled: Cache translation results, batch process short texts")
         
-        # 显示设置
-        show_dual_view = st.checkbox("显示左右编辑界面", value=True, help="显示左右分开的编辑界面，可以修改译文并输出最终文档")
+        # Display settings
+        show_dual_view = st.checkbox("Show Left-Right Edit Interface", value=True, help="Show left-right split edit interface, can modify translated text and output final document")
     
-    # 主界面
+    # Main interface
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.subheader("📁 文档上传")
+        st.subheader("📁 Document Upload")
         uploaded_file = st.file_uploader(
-            "选择Word文档",
+            "Select Word Document",
             type=['docx'],
-            help="支持.docx格式的Word文档"
+            help="Supports .docx format Word documents"
         )
     
     with col2:
-        st.subheader("📊 系统状态")
+        st.subheader("📊 System Status")
         if uploaded_file:
-            st.success("✅ 文档已上传")
-            st.info(f"📄 文件名: {uploaded_file.name}")
-            st.info(f"📏 文件大小: {len(uploaded_file.getvalue())} bytes")
+            st.success("✅ Document uploaded")
+            st.info(f"📄 File name: {uploaded_file.name}")
+            st.info(f"📏 File size: {len(uploaded_file.getvalue())} bytes")
         else:
-            st.warning("⚠️ 请上传Word文档")
+            st.warning("⚠️ Please upload Word document")
     
     if uploaded_file is not None:
-        # 保存上传的文件
+        # Save uploaded file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as tmp_file:
             tmp_file.write(uploaded_file.getvalue())
             tmp_file_path = tmp_file.name
         
-        # 初始化智能翻译系统
+        # Initialize intelligent translation system
         translator_system = SmartDocumentTranslator()
         translator_system.set_translator(api_key)
         
-        # 设置专有名词保护
+        # Set proper noun protection
         if use_proper_noun_protection:
             if custom_proper_nouns:
                 try:
-                    # 解析自定义专有名词
+                    # Parse custom proper nouns
                     custom_nouns = [noun.strip() for noun in custom_proper_nouns.split('\n') if noun.strip()]
                     translator_system.translator.add_proper_nouns(custom_nouns)
-                    st.success(f"✅ 专有名词保护已设置，共保护 {len(custom_nouns)} 个自定义专有名词")
+                    st.success(f"✅ Proper noun protection set, protecting {len(custom_nouns)} custom proper nouns")
                 except Exception as e:
-                    st.error(f"❌ 专有名词设置失败: {str(e)}")
+                    st.error(f"❌ Failed to set proper nouns: {str(e)}")
             else:
-                st.info("ℹ️ 使用内置专有名词保护（GitHub、OpenAI、Python等）")
+                st.info("ℹ️ Using built-in proper noun protection (GitHub, OpenAI, Python, etc.)")
         
-        # 处理按钮
-        if st.button("🚀 开始智能翻译", type="primary"):
-            with st.spinner("正在进行智能文档翻译..."):
-                # 创建输出文件路径
+        # Process button
+        if st.button("🚀 Start Intelligent Translation", type="primary"):
+            with st.spinner("Performing intelligent document translation..."):
+                # Create output file path
                 output_filename = f"translated_{uploaded_file.name}"
                 with tempfile.NamedTemporaryFile(delete=False, suffix='.docx') as output_file:
                     output_path = output_file.name
                 
-                # 执行智能翻译
+                # Execute intelligent translation
                 success = translator_system.process_document(
                     tmp_file_path, target_lang_code, output_path
                 )
                 
                 if success:
-                    st.success("🎉 智能翻译完成！")
+                    st.success("🎉 Intelligent translation completed!")
                     
-                    # 显示处理结果
-                    st.subheader("📊 处理结果")
+                    # Display processing results
+                    st.subheader("📊 Processing Results")
                     
-                    # 读取生成的文件
+                    # Read generated file
                     with open(output_path, 'rb') as f:
                         file_data = f.read()
                     
-                    # 提供下载
+                    # Provide download
                     st.download_button(
-                        label="📥 下载翻译后的文档",
+                        label="📥 Download Translated Document",
                         data=file_data,
                         file_name=output_filename,
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                     
-                    # 显示翻译完成信息和段落对比
+                    # Display translation completion information and paragraph comparison
                     if show_dual_view:
                         st.markdown("---")
-                        st.subheader("📊 翻译完成")
+                        st.subheader("📊 Translation Completed")
                         
-                        # 显示翻译统计
+                        # Display translation statistics
                         col1, col2, col3 = st.columns(3)
                         
                         with col1:
-                            st.metric("翻译状态", "✅ 完成")
+                            st.metric("Translation Status", "✅ Completed")
                         
                         with col2:
-                            st.metric("目标语言", target_lang)
+                            st.metric("Target Language", target_lang)
                         
                         with col3:
-                            st.metric("文件大小", f"{len(file_data)} bytes")
+                            st.metric("File Size", f"{len(file_data)} bytes")
                         
-                        # 显示成功信息
-                        st.success("🎉 文档翻译完成！您可以下载翻译后的文档。")
+                        # Display success message
+                        st.success("🎉 Document translation completed! You can download the translated document.")
                         
-                        # 简单展示界面
+                        # Simple display interface
                         st.markdown("---")
-                        st.subheader("📄 翻译结果展示")
+                        st.subheader("📄 Translation Results Display")
                         
-                        # 初始化简单展示界面
+                        # Initialize simple display interface
                         from simple_display_interface import SimpleDisplayInterface
                         display_interface = SimpleDisplayInterface()
                         
-                        # 加载文档进行展示
+                        # Load documents for display
                         if display_interface.load_documents(tmp_file_path, output_path):
-                            # 显示翻译摘要
+                            # Display translation summary
                             display_interface.display_translation_summary()
                             
-                            # 显示简单展示界面
+                            # Display simple display interface
                             display_interface.display_simple_interface()
                             
-                            # 最终输出
+                            # Final output
                             st.markdown("---")
-                            st.subheader("📤 最终输出")
+                            st.subheader("📤 Final Output")
                             
-                            if st.button("📄 生成最终文档", type="primary"):
-                                with st.spinner("正在生成最终文档..."):
+                            if st.button("📄 Generate Final Document", type="primary"):
+                                with st.spinner("Generating final document..."):
                                     final_output_path = tempfile.mktemp(suffix='.docx')
                                     
                                     if edit_interface.create_final_document(final_output_path):
-                                        st.success("✅ 最终文档生成成功！")
+                                        st.success("✅ Final document generated successfully!")
                                         
-                                        # 读取最终文档
+                                        # Read final document
                                         with open(final_output_path, 'rb') as f:
                                             final_data = f.read()
                                         
-                                        # 提供下载
+                                        # Provide download
                                         st.download_button(
-                                            label="📥 下载最终文档",
+                                            label="📥 Download Final Document",
                                             data=final_data,
                                             file_name=f"final_{uploaded_file.name}",
                                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                         )
                                         
-                                        # 清理临时文件
+                                        # Clean up temporary files
                                         try:
                                             os.unlink(final_output_path)
                                         except:
                                             pass
                                     else:
-                                        st.error("❌ 最终文档生成失败")
+                                        st.error("❌ Final document generation failed")
                         else:
-                            st.warning("⚠️ 无法加载文档进行编辑")
+                            st.warning("⚠️ Unable to load documents for editing")
                         
-                        # 显示使用提示
-                        st.info("💡 提示：翻译后的文档已保持原有格式，可以直接使用。")
+                        # Display usage tips
+                        st.info("💡 Tip: The translated document has maintained the original format and can be used directly.")
                     
-                    # 清理临时文件
+                    # Clean up temporary files
                     try:
                         os.unlink(tmp_file_path)
                         os.unlink(output_path)
@@ -233,32 +233,32 @@ def main():
                 else:
                     st.error("❌ 智能翻译失败，请检查文档格式和API密钥")
     
-    # 系统说明
+    # System description
     st.markdown("---")
-    st.subheader("📖 使用说明")
+    st.subheader("📖 Usage Instructions")
     
     st.markdown("""
-    ### 🚀 功能特性
+    ### 🚀 Feature Characteristics
     
-    1. **智能翻译**: 使用OpenAI GPT模型进行高质量翻译
-    2. **格式保持**: 保持原文档的格式、样式和布局
-    3. **专有名词保护**: 自动保护技术术语和专有名词不被翻译
-    4. **性能优化**: 支持缓存和批量处理，提升翻译速度
+    1. **Intelligent Translation**: Uses OpenAI GPT models for high-quality translation
+    2. **Format Preservation**: Maintains original document format, styles and layout
+    3. **Proper Noun Protection**: Automatically protects technical terms and proper nouns from translation
+    4. **Performance Optimization**: Supports caching and batch processing to improve translation speed
     
-    ### 📝 使用步骤
+    ### 📝 Usage Steps
     
-    1. **设置API密钥**: 在侧边栏输入OpenAI API密钥
-    2. **选择目标语言**: 选择要翻译成的目标语言
-    3. **上传文档**: 上传.docx格式的Word文档
-    4. **开始翻译**: 点击"开始智能翻译"按钮
-    5. **下载结果**: 下载翻译后的文档
+    1. **Set API Key**: Enter OpenAI API key in the sidebar
+    2. **Select Target Language**: Choose the target language for translation
+    3. **Upload Document**: Upload .docx format Word document
+    4. **Start Translation**: Click "Start Intelligent Translation" button
+    5. **Download Results**: Download the translated document
     
-    ### ⚠️ 注意事项
+    ### ⚠️ Notes
     
-    - 仅支持.docx格式的Word文档
-    - 需要有效的OpenAI API密钥
-    - 翻译质量取决于文档复杂度和API配额
-    - 建议先测试小文档，确认效果后再处理大文档
+    - Only supports .docx format Word documents
+    - Requires valid OpenAI API key
+    - Translation quality depends on document complexity and API quota
+    - Recommend testing with small documents first, then process larger documents after confirming effectiveness
     """)
 
 if __name__ == "__main__":

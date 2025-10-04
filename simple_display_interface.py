@@ -1,5 +1,5 @@
 """
-简单展示界面 - 只展示翻译结果，不提供编辑功能
+Simple Display Interface - Only displays translation results, no editing functionality
 """
 
 import streamlit as st
@@ -9,114 +9,114 @@ import tempfile
 import os
 
 class SimpleDisplayInterface:
-    """简单展示界面 - 只展示翻译结果"""
+    """Simple display interface - only displays translation results"""
     
     def __init__(self):
         self.original_paragraphs = []
         self.translated_paragraphs = []
     
     def load_documents(self, original_path: str, translated_path: str):
-        """加载原文档和翻译文档"""
+        """Load original and translated documents"""
         try:
-            # 读取原文档
+            # Read original document
             original_doc = Document(original_path)
             self.original_paragraphs = [p.text.strip() for p in original_doc.paragraphs if p.text.strip()]
             
-            # 读取翻译文档
+            # Read translated document
             translated_doc = Document(translated_path)
             self.translated_paragraphs = [p.text.strip() for p in translated_doc.paragraphs if p.text.strip()]
             
-            st.success("✅ 文档加载成功！")
+            st.success("✅ Documents loaded successfully!")
             return True
         except Exception as e:
-            st.error(f"❌ 文档加载失败: {str(e)}")
+            st.error(f"❌ Failed to load documents: {str(e)}")
             return False
     
     def display_simple_interface(self):
-        """显示简单展示界面"""
+        """Display simple interface"""
         if not self.original_paragraphs or not self.translated_paragraphs:
-            st.warning("⚠️ 请先加载文档")
+            st.warning("⚠️ Please load documents first")
             return
         
         st.markdown("---")
-        st.subheader("📄 翻译结果展示")
+        st.subheader("📄 Translation Results Display")
         
-        # 显示统计信息
+        # Display statistics
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("原文档段落数", len(self.original_paragraphs))
+            st.metric("Original Paragraphs", len(self.original_paragraphs))
         
         with col2:
-            st.metric("译文段落数", len(self.translated_paragraphs))
+            st.metric("Translated Paragraphs", len(self.translated_paragraphs))
         
         with col3:
-            st.metric("翻译完成率", "100%")
+            st.metric("Translation Completion", "100%")
         
-        # 显示翻译结果对比
-        st.markdown("### 📊 翻译结果对比")
+        # Display translation results comparison
+        st.markdown("### 📊 Translation Results Comparison")
         
-        # 使用左右两列布局展示原文和译文
+        # Use left-right column layout to display original and translated text
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("#### 📝 原文")
+            st.markdown("#### 📝 Original Text")
             for i, paragraph in enumerate(self.original_paragraphs):
                 if paragraph.strip():
-                    st.markdown(f"**段落 {i+1}:**")
+                    st.markdown(f"**Paragraph {i+1}:**")
                     st.text_area(
-                        f"原文段落 {i+1}",
+                        f"Original Paragraph {i+1}",
                         value=paragraph,
                         height=100,
                         key=f"original_display_{i}",
                         disabled=True
                     )
-                    st.markdown(f"字数: {len(paragraph)}")
+                    st.markdown(f"Word count: {len(paragraph)}")
                     st.markdown("---")
         
         with col2:
-            st.markdown("#### 🌐 译文")
+            st.markdown("#### 🌐 Translated Text")
             for i, paragraph in enumerate(self.translated_paragraphs):
                 if paragraph.strip():
-                    st.markdown(f"**段落 {i+1}:**")
+                    st.markdown(f"**Paragraph {i+1}:**")
                     st.text_area(
-                        f"译文段落 {i+1}",
+                        f"Translated Paragraph {i+1}",
                         value=paragraph,
                         height=100,
                         key=f"translated_display_{i}",
                         disabled=True
                     )
-                    st.markdown(f"字数: {len(paragraph)}")
+                    st.markdown(f"Word count: {len(paragraph)}")
                     st.markdown("---")
         
-        # 显示翻译统计
+        # Display translation statistics
         self._display_translation_stats()
     
     def _display_translation_stats(self):
-        """显示翻译统计"""
-        st.markdown("### 📈 翻译统计")
+        """Display translation statistics"""
+        st.markdown("### 📈 Translation Statistics")
         
-        # 计算统计信息
+        # Calculate statistics
         total_original_chars = sum(len(p) for p in self.original_paragraphs)
         total_translated_chars = sum(len(p) for p in self.translated_paragraphs)
         
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("原文档总字数", total_original_chars)
+            st.metric("Original Total Characters", total_original_chars)
         
         with col2:
-            st.metric("译文总字数", total_translated_chars)
+            st.metric("Translated Total Characters", total_translated_chars)
         
         with col3:
             length_ratio = total_translated_chars / total_original_chars if total_original_chars > 0 else 1
-            st.metric("长度比例", f"{length_ratio:.2f}")
+            st.metric("Length Ratio", f"{length_ratio:.2f}")
         
         with col4:
-            st.metric("段落数", len(self.original_paragraphs))
+            st.metric("Paragraph Count", len(self.original_paragraphs))
     
     def get_translation_summary(self):
-        """获取翻译摘要"""
+        """Get translation summary"""
         if not self.original_paragraphs or not self.translated_paragraphs:
             return {}
         
@@ -131,30 +131,30 @@ class SimpleDisplayInterface:
         }
     
     def display_translation_summary(self):
-        """显示翻译摘要"""
+        """Display translation summary"""
         summary = self.get_translation_summary()
         
         if summary:
-            st.markdown("### 📊 翻译摘要")
+            st.markdown("### 📊 Translation Summary")
             
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("总段落数", summary['total_paragraphs'])
+                st.metric("Total Paragraphs", summary['total_paragraphs'])
             
             with col2:
-                st.metric("原文档总字数", summary['total_original_chars'])
+                st.metric("Original Total Characters", summary['total_original_chars'])
             
             with col3:
-                st.metric("译文总字数", summary['total_translated_chars'])
+                st.metric("Translated Total Characters", summary['total_translated_chars'])
             
-            # 长度比例
-            st.markdown(f"**长度比例**: {summary['length_ratio']:.2f}")
+            # Length ratio
+            st.markdown(f"**Length Ratio**: {summary['length_ratio']:.2f}")
             
-            # 翻译质量评估
+            # Translation quality assessment
             if summary['length_ratio'] > 0.8 and summary['length_ratio'] < 1.2:
-                st.success("✅ 翻译长度合理")
+                st.success("✅ Translation length is reasonable")
             elif summary['length_ratio'] > 1.2:
-                st.warning("⚠️ 译文较长，可能需要调整")
+                st.warning("⚠️ Translated text is longer, may need adjustment")
             else:
-                st.warning("⚠️ 译文较短，可能需要调整")
+                st.warning("⚠️ Translated text is shorter, may need adjustment")
