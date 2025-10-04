@@ -263,7 +263,6 @@ smart_app.py                 # 主应用界面
 
 - **项目主页**：https://github.com/Rain-Shi/Free_translate
 - **问题反馈**：https://github.com/Rain-Shi/Free_translate/issues
-- **功能建议**：https://github.com/Rain-Shi/Free_translate/discussions
 
 ---
 
